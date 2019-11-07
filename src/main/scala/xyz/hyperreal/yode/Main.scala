@@ -8,6 +8,8 @@ package xyz.hyperreal.yode
 import java.nio.file.{Files, Path, Paths}
 import java.nio.charset.StandardCharsets
 
+import xyz.hyperreal.yola.{Interpreter, Scope, YolaParser}
+
 object Main extends App {
 
   case class Options(file: Option[Path] = None)
@@ -36,11 +38,15 @@ object Main extends App {
       options.file match {
         case None => println("no REPL yet")
         case Some(path) =>
-          val prog = new String(Files.readAllBytes(path), StandardCharsets.UTF_8)
+          val program           = new String(Files.readAllBytes(path), StandardCharsets.UTF_8)
+          val parser            = new YolaParser
+          val ast               = parser.parseFromString(program, parser.source)
+          val interp            = new Interpreter
+          implicit val toplevel = new Scope
 
-          println(prog)
+          toplevel.vars("println") = (args: List[Any]) => println(args mkString ", ")
+          interp(ast)
       }
-
     case None => System.exit(1)
   }
 

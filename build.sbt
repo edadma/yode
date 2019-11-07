@@ -31,3 +31,6 @@ libraryDependencies ++= Seq(
   "com.lihaoyi" %%% "fastparse" % "1.0.0"
 )
 
+libraryDependencies ++= Seq(
+  "xyz.hyperreal" %%% "yola" % "0.1a.0"
+)
