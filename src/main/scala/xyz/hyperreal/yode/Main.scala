@@ -1,11 +1,44 @@
 package xyz.hyperreal.yode
 
-import xyz.hyperreal.yode.uv.TcpHandle
+//import xyz.hyperreal.yode.uv.TcpHandle
+//
+//import scala.scalanative.native._
+//import scala.scalanative.posix.netinet.in.sockaddr_in
 
-import scala.scalanative.native._
-import scala.scalanative.posix.netinet.in.sockaddr_in
+import java.nio.file.{Files, Path, Paths}
 
 object Main extends App {
+
+  case class Options(file: Option[Path] = None)
+
+  private val parser = new scopt.OptionParser[Options]("yode") {
+    head("yode", "v0.1.0")
+    version("version").text("prints the version").abbr("v")
+    help("help").text("prints this usage text").abbr("h")
+    arg[String]("<file>...")
+      .optional
+     .validate(
+        f =>
+          if (!Files.exists(Paths.get(f)))
+            failure(s"file '$f' not found")
+          else if (!Files.isRegularFile(Paths.get(f)))
+            failure(s"'$f' not a file")
+          else if (!Files.isReadable(Paths.get(f)))
+            failure(s"file '$f' unreadable") 
+          else 
+            success)
+      .action((f, c) => c.copy(file = Some(Paths.get(f))))
+      .text("loads and executes program from <file>")
+  }
+
+  parser.parse(args, Options()) match {
+    case Some(options) => println(options)
+    case None          => System.exit(1)
+  }
+
+}
+
+/*
 
   case class ServerConfig(host: String = "127.0.0.1", port: Int = 7000)
 
@@ -43,4 +76,4 @@ object Main extends App {
     println("Started event loop")
   }
 
-}
+ */

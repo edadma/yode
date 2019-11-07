@@ -1,6 +1,6 @@
 package xyz.hyperreal
 
-import scala.scalanative.native.{fromCString, CInt}
+import scala.scalanative.native._
 
 package object yode {
 
