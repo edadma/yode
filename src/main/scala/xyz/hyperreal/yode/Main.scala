@@ -6,6 +6,7 @@ package xyz.hyperreal.yode
 //import scala.scalanative.posix.netinet.in.sockaddr_in
 
 import java.nio.file.{Files, Path, Paths}
+import java.nio.charset.StandardCharsets
 
 object Main extends App {
 
@@ -15,25 +16,32 @@ object Main extends App {
     head("yode", "v0.1.0")
     version("version").text("prints the version").abbr("v")
     help("help").text("prints this usage text").abbr("h")
-    arg[String]("<file>...")
-      .optional
-     .validate(
+    arg[String]("<file>...").optional
+      .validate(
         f =>
           if (!Files.exists(Paths.get(f)))
             failure(s"file '$f' not found")
           else if (!Files.isRegularFile(Paths.get(f)))
             failure(s"'$f' not a file")
           else if (!Files.isReadable(Paths.get(f)))
-            failure(s"file '$f' unreadable") 
-          else 
-            success)
+            failure(s"file '$f' unreadable")
+          else
+          success)
       .action((f, c) => c.copy(file = Some(Paths.get(f))))
       .text("loads and executes program from <file>")
   }
 
   parser.parse(args, Options()) match {
-    case Some(options) => println(options)
-    case None          => System.exit(1)
+    case Some(options) =>
+      options.file match {
+        case None => println("no REPL yet")
+        case Some(path) =>
+          val prog = new String(Files.readAllBytes(path), StandardCharsets.UTF_8)
+
+          println(prog)
+      }
+
+    case None => System.exit(1)
   }
 
 }
