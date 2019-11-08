@@ -8,7 +8,7 @@ package xyz.hyperreal.yode
 import java.nio.file.{Files, Path, Paths}
 import java.nio.charset.StandardCharsets
 
-import xyz.hyperreal.yola.{Interpreter, Scope, YolaParser}
+import xyz.hyperreal.yola.{Scope, YolaInterpreter, YolaParser}
 
 object Main extends App {
 
@@ -41,11 +41,11 @@ object Main extends App {
           val program           = new String(Files.readAllBytes(path), StandardCharsets.UTF_8)
           val parser            = new YolaParser
           val ast               = parser.parseFromString(program, parser.source)
-          val interp            = new Interpreter
           implicit val toplevel = new Scope
 
-          toplevel.vars("println") = (args: List[Any]) => println(args mkString ", ")
-          interp(ast)
+          toplevel.vars("console") = Map("log" -> ((args: List[Any]) => println(args mkString ", ")))
+          toplevel.vars("setInterval") = (args: List[Any]) => println(args mkString ", ")
+          YolaInterpreter(ast)
       }
     case None => System.exit(1)
   }

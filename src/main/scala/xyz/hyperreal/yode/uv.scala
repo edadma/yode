@@ -17,6 +17,22 @@ object uv {
 
   type _100 = Digit[_1, Digit[_0, _0]]
 
+  type TimerHandle = CStruct9[
+    // handle fields
+    Ptr[Unit], // void* data;
+    Ptr[Loop], // uv_loop_t* loop;
+    CInt, // uv_handle_type type;
+    CFunctionPtr1[Ptr[Unit], Unit], // uv_close_cb close_cb; (Ptr[Unit] is actually Ptr[TcpHandle] but we can't have recursive types)
+    CArray[Ptr[Unit], _2], // void* handle_queue[2];
+    CArray[Ptr[Unit], _4], // union { int fd; void* reserved[4]; } u;
+    Ptr[Unit], // uv_handle_t* next_closing; (Ptr[Unit] is actually Ptr[TcpHandle])
+    UInt,      // unsigned int flags;
+    // timer private fields
+    CArray[Byte, Digit[_5, _6]] // add enough padding to cover a bunch of private fields
+  ]
+
+  type TimerCallback = CFunctionPtr1[Ptr[TimerHandle], Unit]
+
   type TcpHandle = CStruct12[
     Ptr[Unit], // void* data;
     Ptr[Loop], // uv_loop_t* loop;
@@ -87,5 +103,15 @@ object uv {
 
   @name("uv_err_name")
   def errName(errorCode: CInt): CString = extern
+
+  /*
+  uv_timer_t
+   */
+
+  @name("uv_timer_init")
+  def timerInit(loop: Ptr[Loop], handle: Ptr[TimerHandle]): CInt = extern
+
+  @name("uv_timer_start")
+  def timerStart(handle: Ptr[TimerHandle], cb: TimerCallback, timeout: CLong, repeat: CLong): CInt = extern
 
 }

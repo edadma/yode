@@ -43,10 +43,10 @@
 #include <pthread.h>
 #include <signal.h>
 
-#include "uv/threadpool.h"
+#include "threadpool.h"
 
 #if defined(__linux__)
-# include "uv/linux.h"
+# include "linux.h"
 #elif defined (__MVS__)
 # include "uv/os390.h"
 #elif defined(__PASE__)  /* __PASE__ and _AIX are both defined on IBM i */
