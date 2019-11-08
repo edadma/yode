@@ -1,8 +1,8 @@
 package xyz.hyperreal.yode
 
 //import xyz.hyperreal.yode.uv.TcpHandle
-//
-//import scala.scalanative.native._
+
+import scala.scalanative.native._
 //import scala.scalanative.posix.netinet.in.sockaddr_in
 
 import java.nio.file.{Files, Path, Paths}
@@ -43,8 +43,20 @@ object Main extends App {
           val ast               = parser.parseFromString(program, parser.source)
           implicit val toplevel = new Scope
 
+          val loop = uv.defaultLoop()
+
           toplevel.vars("console") = Map("log" -> ((args: List[Any]) => println(args mkString ", ")))
-          toplevel.vars("setInterval") = (args: List[Any]) => println(args mkString ", ")
+          toplevel.vars("setInterval") = (args: List[Any]) => {
+            val timerHandle = stdlib.malloc(sizeof[uv.TimerHandle]).cast[Ptr[uv.TimerHandle]]
+
+            uv.timerInit(loop, timerHandle)
+            uv.timerStart(timerHandle,
+                          args.head.asInstanceOf[uv.TimerCallback],
+                          args.tail.head.asInstanceOf[CLong],
+                          args.tail.head.asInstanceOf[CLong])
+
+            timerHandle
+          }
           YolaInterpreter(ast)
       }
     case None => System.exit(1)
