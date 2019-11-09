@@ -54,8 +54,8 @@ object Main extends App {
             uv.timerStart(
               timerHandle,
               timerCallback,
-              args.tail.head.asInstanceOf[CLong],
-              args.tail.head.asInstanceOf[CLong]
+              args.tail.head.asInstanceOf[ULong],
+              args.tail.head.asInstanceOf[ULong]
             )
 
             timerHandle
