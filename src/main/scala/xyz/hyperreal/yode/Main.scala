@@ -47,16 +47,20 @@ object Main extends App {
 
           toplevel.vars("console") = Map("log" -> ((args: List[Any]) => println(args mkString ", ")))
           toplevel.vars("setInterval") = (args: List[Any]) => {
-            val timerHandle = stdlib.malloc(sizeof[uv.TimerHandle]).cast[Ptr[uv.TimerHandle]]
+            val timerHandle   = stdlib.malloc(sizeof[uv.TimerHandle]).cast[Ptr[uv.TimerHandle]]
+            val timerCallback = CFunctionPtr.fromFunction1(args.head.asInstanceOf[Ptr[uv.TimerHandle] => Unit])
 
             uv.timerInit(loop, timerHandle)
-            uv.timerStart(timerHandle,
-                          args.head.asInstanceOf[uv.TimerCallback],
-                          args.tail.head.asInstanceOf[CLong],
-                          args.tail.head.asInstanceOf[CLong])
+            uv.timerStart(
+              timerHandle,
+              timerCallback,
+              args.tail.head.asInstanceOf[CLong],
+              args.tail.head.asInstanceOf[CLong]
+            )
 
             timerHandle
           }
+
           YolaInterpreter(ast)
       }
     case None => System.exit(1)
