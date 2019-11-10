@@ -2,13 +2,16 @@ package xyz.hyperreal.yode
 
 //import xyz.hyperreal.yode.uv.TcpHandle
 
+import xyz.hyperreal.yola.LiteralExpressionAST
+
+import scala.collection.mutable
 import scala.scalanative.native._
 //import scala.scalanative.posix.netinet.in.sockaddr_in
 
 import java.nio.file.{Files, Path, Paths}
 import java.nio.charset.StandardCharsets
 
-import xyz.hyperreal.yola.{Scope, YolaInterpreter, YolaParser}
+import xyz.hyperreal.yola.{ApplyExpressionAST, ExpressionAST, Scope, YolaInterpreter, YolaParser}
 
 object Main extends App {
 
@@ -33,35 +36,49 @@ object Main extends App {
       .text("loads and executes program from <file>")
   }
 
+  var timerSerial       = 0L
+  var timers            = new mutable.HashMap[Long, ExpressionAST]
+  implicit val toplevel = new Scope
+
+  def timerCallback(handle: Ptr[uv.TimerHandle]): Unit = {
+    println(toplevel.vars)
+    YolaInterpreter.eval(ApplyExpressionAST(null, LiteralExpressionAST(timers(!handle)), null, Nil, false))
+  }
+
+  val timerCallbackPtr = CFunctionPtr.fromFunction1(timerCallback)
+
   parser.parse(args, Options()) match {
     case Some(options) =>
       options.file match {
         case None => println("no REPL yet")
         case Some(path) =>
-          val program           = new String(Files.readAllBytes(path), StandardCharsets.UTF_8)
-          val parser            = new YolaParser
-          val ast               = parser.parseFromString(program, parser.source)
-          implicit val toplevel = new Scope
+          val program = new String(Files.readAllBytes(path), StandardCharsets.UTF_8)
+          val parser  = new YolaParser
+          val ast     = parser.parseFromString(program, parser.source)
 
           val loop = uv.defaultLoop()
 
           toplevel.vars("console") = Map("log" -> ((args: List[Any]) => println(args mkString ", ")))
           toplevel.vars("setInterval") = (args: List[Any]) => {
-            val timerHandle   = stdlib.malloc(sizeof[uv.TimerHandle]).cast[Ptr[uv.TimerHandle]]
-            val timerCallback = CFunctionPtr.fromFunction1(args.head.asInstanceOf[Ptr[uv.TimerHandle] => Unit])
+            val timerHandle = stdlib.malloc(uv.handleSize(uvConstants.TIMER_HANDLE)).cast[Ptr[uv.TimerHandle]]
 
             uv.timerInit(loop, timerHandle)
+            !timerHandle = timerSerial
+            timers(timerSerial) = args.head.asInstanceOf[ExpressionAST]
+            timerSerial += 1
             uv.timerStart(
               timerHandle,
-              timerCallback,
-              args.tail.head.asInstanceOf[ULong],
-              args.tail.head.asInstanceOf[ULong]
+              timerCallbackPtr,
+              args.tail.head.asInstanceOf[Int],
+              args.tail.head.asInstanceOf[Int]
             )
 
             timerHandle
           }
+          toplevel.vars("clearInterval") = (args: List[Any]) => {}
 
           YolaInterpreter(ast)
+          uv.run(loop, uvConstants.RUN_DEFAULT)
       }
     case None => System.exit(1)
   }

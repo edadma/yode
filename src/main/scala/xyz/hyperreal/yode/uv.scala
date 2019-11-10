@@ -8,15 +8,6 @@ import scala.scalanative.posix.netinet.in.sockaddr_in
 @extern
 object uv {
 
-  val PIPE_HANDLE    = 7
-  val POLL_HANDLE    = 8
-  val PREPARE_HANDLE = 9
-  val PROCESS_HANDLE = 10
-  val TCP_HANDLE     = 12
-  val TIMER_HANDLE   = 13
-  val TTY_HANDLE     = 14
-  val UDP_HANDLE     = 15
-
   type Loop = Ptr[Byte]
 
   type Buffer = CStruct2[
@@ -24,7 +15,7 @@ object uv {
     CSize // size_t len;
   ]
 
-  type TimerHandle = Ptr[Byte]
+  type TimerHandle = Long
 
   type TimerCallback = CFunctionPtr1[Ptr[TimerHandle], Unit]
 
@@ -51,6 +42,9 @@ object uv {
   @name("uv_default_loop")
   def defaultLoop(): Ptr[Loop] = extern
 
+  @name("uv_run")
+  def run(loop: Ptr[Loop], runMode: CInt): CInt = extern
+
   @name("uv_loop_size")
   def loopSize(): CSize = extern
 
@@ -67,9 +61,6 @@ object uv {
   def listen(handle: Ptr[TcpHandle],
              connectionBacklog: CInt,
              onTcpConnection: CFunctionPtr2[Ptr[TcpHandle], CInt, Unit]): CInt = extern
-
-  @name("uv_run")
-  def run(loop: Ptr[Loop], runMode: CInt): CInt = extern
 
   @name("uv_accept")
   def accept(handle: Ptr[TcpHandle], clientHandle: Ptr[TcpHandle]): CInt = extern
@@ -100,6 +91,23 @@ object uv {
   def timerInit(loop: Ptr[Loop], handle: Ptr[TimerHandle]): CInt = extern
 
   @name("uv_timer_start")
-  def timerStart(handle: Ptr[TimerHandle], cb: TimerCallback, timeout: ULong, repeat: ULong): CInt = extern
+  def timerStart(handle: Ptr[TimerHandle], cb: TimerCallback, timeout: Long, repeat: Long): CInt = extern
+
+}
+
+object uvConstants {
+
+  val RUN_DEFAULT = 0
+  val RUN_ONCE    = 1
+  val RUN_NOWAIT  = 2
+
+  val PIPE_HANDLE    = 7
+  val POLL_HANDLE    = 8
+  val PREPARE_HANDLE = 9
+  val PROCESS_HANDLE = 10
+  val TCP_HANDLE     = 12
+  val TIMER_HANDLE   = 13
+  val TTY_HANDLE     = 14
+  val UDP_HANDLE     = 15
 
 }

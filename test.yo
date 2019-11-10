@@ -1,1 +1,3 @@
-console.log('this is a test', 123)
+def callback = console.log('this is a test')
+
+setInterval( callback, 1000 )
