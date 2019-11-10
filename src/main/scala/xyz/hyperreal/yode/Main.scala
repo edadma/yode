@@ -38,10 +38,9 @@ object Main extends App {
 
   var timerSerial       = 0L
   var timers            = new mutable.HashMap[Long, ExpressionAST]
-  implicit val toplevel = new Scope
+  implicit val toplevel = new Scope(null)
 
   def timerCallback(handle: Ptr[uv.TimerHandle]): Unit = {
-    println(toplevel.vars)
     YolaInterpreter.eval(ApplyExpressionAST(null, LiteralExpressionAST(timers(!handle)), null, Nil, false))
   }
 
@@ -55,8 +54,7 @@ object Main extends App {
           val program = new String(Files.readAllBytes(path), StandardCharsets.UTF_8)
           val parser  = new YolaParser
           val ast     = parser.parseFromString(program, parser.source)
-
-          val loop = uv.defaultLoop()
+          val loop    = uv.defaultLoop()
 
           toplevel.vars("console") = Map("log" -> ((args: List[Any]) => println(args mkString ", ")))
           toplevel.vars("setInterval") = (args: List[Any]) => {

@@ -1,3 +1,5 @@
-def callback = console.log('this is a test')
+var count = 0
+
+def callback = console.log('Yo Yo Yode!', ++count)
 
 setInterval( callback, 1000 )
