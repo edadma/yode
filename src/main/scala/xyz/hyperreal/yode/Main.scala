@@ -2,7 +2,7 @@ package xyz.hyperreal.yode
 
 //import xyz.hyperreal.yode.uv.TcpHandle
 
-import xyz.hyperreal.yola.LiteralExpressionAST
+import xyz.hyperreal.yola.{FunctionAST, LiteralExpressionAST}
 
 import scala.collection.mutable
 import scala.scalanative.native._
@@ -11,7 +11,7 @@ import scala.scalanative.native._
 import java.nio.file.{Files, Path, Paths}
 import java.nio.charset.StandardCharsets
 
-import xyz.hyperreal.yola.{ApplyExpressionAST, ExpressionAST, Scope, YolaInterpreter, YolaParser}
+import xyz.hyperreal.yola.{ApplyExpressionAST, Scope, YolaInterpreter, YolaParser}
 
 object Main extends App {
 
@@ -44,16 +44,11 @@ object Main extends App {
       .text("load and execute program from <file>")
   }
 
-  var timers            = new mutable.HashMap[Long, ExpressionAST]
+  var timers            = new mutable.HashMap[Long, FunctionAST]
   implicit val toplevel = new Scope(null)
 
   def timerCallback(handle: Ptr[uv.TimerHandle]): Unit = {
-    YolaInterpreter.eval(
-      ApplyExpressionAST(null,
-                         LiteralExpressionAST(timers(handle.cast[Long])),
-                         null,
-                         List((null, LiteralExpressionAST(TimerHandle(handle)))),
-                         false))
+    YolaInterpreter.call(null, timers(handle.cast[Long]), null, List(TimerHandle(handle)))
   }
 
   val timerCallbackPtr = CFunctionPtr.fromFunction1(timerCallback)
@@ -64,7 +59,7 @@ object Main extends App {
     val timerHandle = stdlib.malloc(uv.handleSize(uvConstants.TIMER_HANDLE)).cast[Ptr[uv.TimerHandle]]
 
     uv.timerInit(loop, timerHandle)
-    timers(timerHandle.cast[Long]) = args.head.asInstanceOf[ExpressionAST]
+    timers(timerHandle.cast[Long]) = args.head.asInstanceOf[FunctionAST]
     uv.timerStart(
       timerHandle,
       timerCallbackPtr,

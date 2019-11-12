@@ -15,10 +15,6 @@ object uv {
     CSize // size_t len;
   ]
 
-  type TimerHandle = Long
-
-  type TimerCallback = CFunctionPtr1[Ptr[TimerHandle], Unit]
-
   type TcpHandle = Ptr[Byte]
 
   type Write = CStruct12[
@@ -87,6 +83,10 @@ object uv {
   uv_timer_t
    */
 
+  type TimerHandle = Long
+
+  type TimerCallback = CFunctionPtr1[Ptr[TimerHandle], Unit]
+
   @name("uv_timer_init")
   def timerInit(loop: Ptr[Loop], handle: Ptr[TimerHandle]): CInt = extern
 
@@ -95,6 +95,23 @@ object uv {
 
   @name("uv_timer_stop")
   def timerStop(handle: Ptr[TimerHandle]): CInt = extern
+
+  /*
+  idle handle
+   */
+
+  type IdleHandle = Long
+
+  type IdleCallback = CFunctionPtr1[Ptr[IdleHandle], Unit]
+
+  @name("uv_idle_init")
+  def idleInit(loop: Ptr[Loop], handle: Ptr[IdleHandle]): CInt = extern
+
+  @name("uv_idle_start")
+  def idleStart(handle: Ptr[IdleHandle], cb: IdleCallback): CInt = extern
+
+  @name("uv_idle_stop")
+  def idleStop(handle: Ptr[IdleHandle]): CInt = extern
 
 }
 
