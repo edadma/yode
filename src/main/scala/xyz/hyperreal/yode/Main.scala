@@ -15,10 +15,20 @@ import xyz.hyperreal.yola.{ApplyExpressionAST, ExpressionAST, Scope, YolaInterpr
 
 object Main extends App {
 
-  case class Options(file: Option[Path] = None, script: Option[String] = None)
+  case class Options(file: Option[Path] = None, eval: Option[String] = None, print: Option[String] = None)
 
   private val parser = new scopt.OptionParser[Options]("yode") {
-    head("yode", "v0.1.0")
+    head("Yode", "v0.1.0")
+    opt[String]('e', "eval")
+      .text("execute program <script>")
+      .valueName("<script>")
+      .action((f, c) => c.copy(eval = Some(f)))
+    help("help").text("print this usage text").abbr("h")
+    opt[String]('p', "print")
+      .text("execute program <script> and print result")
+      .valueName("<script>")
+      .action((f, c) => c.copy(print = Some(f)))
+    version("version").text("print the version").abbr("v")
     arg[String]("<file>").optional
       .validate(
         f =>
@@ -32,12 +42,6 @@ object Main extends App {
           success)
       .action((f, c) => c.copy(file = Some(Paths.get(f))))
       .text("load and execute program from <file>")
-    version("version").text("print the version").abbr("v")
-    help("help").text("print this usage text").abbr("h")
-    opt[String]('e', "eval")
-      .text("execute program <script>")
-      .valueName("<script>")
-      .action((f, c) => c.copy(script = Some(f)))
   }
 
   var timers            = new mutable.HashMap[Long, ExpressionAST]
@@ -80,17 +84,18 @@ object Main extends App {
   parser.parse(args, Options()) match {
     case Some(options) =>
       options match {
-        case Options(None, None)         => println("no REPL yet")
-        case Options(Some(path), None)   => execute(new String(Files.readAllBytes(path), StandardCharsets.UTF_8))
-        case Options(None, Some(script)) => execute(script)
-        case _                           => parser.showUsageAsError
+        case Options(None, None, None)         => println("no REPL yet")
+        case Options(Some(path), None, None)   => run(new String(Files.readAllBytes(path), StandardCharsets.UTF_8))
+        case Options(None, Some(script), None) => run(script)
+        case Options(None, None, Some(script)) => println(s"${Console.YELLOW}${run(script)}${Console.RESET}")
+        case _                                 => parser.showUsageAsError
       }
     case None => System.exit(1)
   }
 
   uv.run(loop, uvConstants.RUN_DEFAULT)
 
-  def execute(script: String) = {
+  def run(script: String) = {
     val parser = new YolaParser
 
     YolaInterpreter(parser.parseFromString(script, parser.source))
