@@ -15,13 +15,11 @@ import xyz.hyperreal.yola.{ApplyExpressionAST, ExpressionAST, Scope, YolaInterpr
 
 object Main extends App {
 
-  case class Options(file: Option[Path] = None)
+  case class Options(file: Option[Path] = None, script: Option[String] = None)
 
   private val parser = new scopt.OptionParser[Options]("yode") {
     head("yode", "v0.1.0")
-    version("version").text("prints the version").abbr("v")
-    help("help").text("prints this usage text").abbr("h")
-    arg[String]("<file>...").optional
+    arg[String]("<file>").optional
       .validate(
         f =>
           if (!Files.exists(Paths.get(f)))
@@ -33,56 +31,74 @@ object Main extends App {
           else
           success)
       .action((f, c) => c.copy(file = Some(Paths.get(f))))
-      .text("loads and executes program from <file>")
+      .text("load and execute program from <file>")
+    version("version").text("print the version").abbr("v")
+    help("help").text("print this usage text").abbr("h")
+    opt[String]('e', "eval")
+      .text("execute program <script>")
+      .valueName("<script>")
+      .action((f, c) => c.copy(script = Some(f)))
   }
 
-  var timerSerial       = 0L
   var timers            = new mutable.HashMap[Long, ExpressionAST]
   implicit val toplevel = new Scope(null)
 
   def timerCallback(handle: Ptr[uv.TimerHandle]): Unit = {
-    YolaInterpreter.eval(ApplyExpressionAST(null, LiteralExpressionAST(timers(!handle)), null, Nil, false))
+    YolaInterpreter.eval(
+      ApplyExpressionAST(null,
+                         LiteralExpressionAST(timers(handle.cast[Long])),
+                         null,
+                         List((null, LiteralExpressionAST(TimerHandle(handle)))),
+                         false))
   }
 
   val timerCallbackPtr = CFunctionPtr.fromFunction1(timerCallback)
+  val loop             = uv.defaultLoop()
+
+  toplevel.vars("console") = Map("log" -> ((args: List[Any]) => println(args mkString ", ")))
+  toplevel.vars("setInterval") = (args: List[Any]) => {
+    val timerHandle = stdlib.malloc(uv.handleSize(uvConstants.TIMER_HANDLE)).cast[Ptr[uv.TimerHandle]]
+
+    uv.timerInit(loop, timerHandle)
+    timers(timerHandle.cast[Long]) = args.head.asInstanceOf[ExpressionAST]
+    uv.timerStart(
+      timerHandle,
+      timerCallbackPtr,
+      args.tail.head.asInstanceOf[Int],
+      args.tail.head.asInstanceOf[Int]
+    )
+
+    TimerHandle(timerHandle)
+  }
+  toplevel.vars("clearInterval") = (args: List[Any]) =>
+    args.head match {
+      case TimerHandle(handle) =>
+        uv.timerStop(handle)
+        stdlib.free(handle.cast[Ptr[Byte]])
+  }
 
   parser.parse(args, Options()) match {
     case Some(options) =>
-      options.file match {
-        case None => println("no REPL yet")
-        case Some(path) =>
-          val program = new String(Files.readAllBytes(path), StandardCharsets.UTF_8)
-          val parser  = new YolaParser
-          val ast     = parser.parseFromString(program, parser.source)
-          val loop    = uv.defaultLoop()
-
-          toplevel.vars("console") = Map("log" -> ((args: List[Any]) => println(args mkString ", ")))
-          toplevel.vars("setInterval") = (args: List[Any]) => {
-            val timerHandle = stdlib.malloc(uv.handleSize(uvConstants.TIMER_HANDLE)).cast[Ptr[uv.TimerHandle]]
-
-            uv.timerInit(loop, timerHandle)
-            !timerHandle = timerSerial
-            timers(timerSerial) = args.head.asInstanceOf[ExpressionAST]
-            timerSerial += 1
-            uv.timerStart(
-              timerHandle,
-              timerCallbackPtr,
-              args.tail.head.asInstanceOf[Int],
-              args.tail.head.asInstanceOf[Int]
-            )
-
-            timerHandle
-          }
-          toplevel.vars("clearInterval") = (args: List[Any]) => {}
-
-          YolaInterpreter(ast)
-          uv.run(loop, uvConstants.RUN_DEFAULT)
+      options match {
+        case Options(None, None)         => println("no REPL yet")
+        case Options(Some(path), None)   => execute(new String(Files.readAllBytes(path), StandardCharsets.UTF_8))
+        case Options(None, Some(script)) => execute(script)
+        case _                           => parser.showUsageAsError
       }
     case None => System.exit(1)
   }
 
+  uv.run(loop, uvConstants.RUN_DEFAULT)
+
+  def execute(script: String) = {
+    val parser = new YolaParser
+
+    YolaInterpreter(parser.parseFromString(script, parser.source))
+  }
+
 }
 
+case class TimerHandle(handle: Ptr[uv.TimerHandle])
 /*
 
   case class ServerConfig(host: String = "127.0.0.1", port: Int = 7000)

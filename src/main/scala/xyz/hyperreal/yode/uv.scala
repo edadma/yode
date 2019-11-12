@@ -93,6 +93,9 @@ object uv {
   @name("uv_timer_start")
   def timerStart(handle: Ptr[TimerHandle], cb: TimerCallback, timeout: Long, repeat: Long): CInt = extern
 
+  @name("uv_timer_stop")
+  def timerStop(handle: Ptr[TimerHandle]): CInt = extern
+
 }
 
 object uvConstants {

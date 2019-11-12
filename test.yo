@@ -1,5 +1,9 @@
 var count = 0
 
-def callback = console.log('Yo Yo Yode!', ++count)
+def callback( handle ) =
+    if (count++ < 3)
+        console.log("Yo Yo Yode! $count")
+    else
+        clearInterval( handle )
 
 setInterval( callback, 1000 )
