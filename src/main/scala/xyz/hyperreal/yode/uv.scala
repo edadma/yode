@@ -121,13 +121,21 @@ object uvConstants {
   val RUN_ONCE    = 1
   val RUN_NOWAIT  = 2
 
-  val PIPE_HANDLE    = 7
-  val POLL_HANDLE    = 8
-  val PREPARE_HANDLE = 9
-  val PROCESS_HANDLE = 10
-  val TCP_HANDLE     = 12
-  val TIMER_HANDLE   = 13
-  val TTY_HANDLE     = 14
-  val UDP_HANDLE     = 15
+  val ASYNC_HANDLE    = 1
+  val CHECK_HANDLE    = 2
+  val FS_EVENT_HANDLE = 3
+  val FS_POLL_HANDLE  = 4
+  val IDLE_HANDLE     = 6
+  val PIPE_HANDLE     = 7
+  val POLL_HANDLE     = 8
+  val PREPARE_HANDLE  = 9
+  val PROCESS_HANDLE  = 10
+  val STREAM_HANDLE   = 11
+  val TCP_HANDLE      = 12
+  val TIMER_HANDLE    = 13
+  val TTY_HANDLE      = 14
+  val UDP_HANDLE      = 15
+  val SIGNAL_HANDLE   = 16
+  val FILE_HANDLE     = 17
 
 }
