@@ -1,9 +1,5 @@
 package xyz.hyperreal.yode
 
-//import xyz.hyperreal.yode.uv.TcpHandle
-
-import xyz.hyperreal.yola.{FunctionAST, LiteralExpressionAST}
-
 import scala.collection.mutable
 import scala.scalanative.native._
 //import scala.scalanative.posix.netinet.in.sockaddr_in
@@ -11,7 +7,7 @@ import scala.scalanative.native._
 import java.nio.file.{Files, Path, Paths}
 import java.nio.charset.StandardCharsets
 
-import xyz.hyperreal.yola.{ApplyExpressionAST, Scope, YolaInterpreter, YolaParser}
+import xyz.hyperreal.yola
 
 object Main extends App {
 
@@ -44,22 +40,22 @@ object Main extends App {
       .text("load and execute program from <file>")
   }
 
-  var timers            = new mutable.HashMap[Long, FunctionAST]
-  implicit val toplevel = new Scope(null)
+  var timers            = new mutable.HashMap[Long, yola.FunctionAST]
+  implicit val toplevel = new yola.Scope(null)
 
   def timerCallback(handle: Ptr[uv.TimerHandle]): Unit = {
-    YolaInterpreter.call(null, timers(handle.cast[Long]), null, List(TimerHandle(handle)))
+    yola.Interpreter.call(null, timers(handle.cast[Long]), null, List(TimerHandle(handle)))
   }
 
   val timerCallbackPtr = CFunctionPtr.fromFunction1(timerCallback)
   val loop             = uv.defaultLoop()
 
-  toplevel.vars("console") = Map("log" -> ((args: List[Any]) => println(args mkString ", ")))
+  toplevel.vars("console") = Map("log" -> ((args: List[Any]) => println(args map yola.display mkString ", ")))
   toplevel.vars("setInterval") = (args: List[Any]) => {
     val timerHandle = stdlib.malloc(uv.handleSize(uvConstants.TIMER_HANDLE)).cast[Ptr[uv.TimerHandle]]
 
     uv.timerInit(loop, timerHandle)
-    timers(timerHandle.cast[Long]) = args.head.asInstanceOf[FunctionAST]
+    timers(timerHandle.cast[Long]) = args.head.asInstanceOf[yola.FunctionAST]
     uv.timerStart(
       timerHandle,
       timerCallbackPtr,
@@ -91,9 +87,8 @@ object Main extends App {
   uv.run(loop, uvConstants.RUN_DEFAULT)
 
   def run(script: String) = {
-    val parser = new YolaParser
-
-    YolaInterpreter(parser.parseFromString(script, parser.source))
+    val parser = new yola.YParser
+    yola.Interpreter(parser.parseFromString(script, parser.source))
   }
 
 }
