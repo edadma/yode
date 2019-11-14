@@ -52,9 +52,6 @@ object uv {
     CArray[Buffer, _4] // uv_buf_t bufsml[4];
   ]
 
-  @name("uv_ip4_addr")
-  def ip4Addr(ip: CString, port: CInt, addr: Ptr[sockaddr_in]): CInt = extern
-
   @name("uv_tcp_init")
   def tcpInit(loop: Ptr[Loop], handle: Ptr[TcpHandle]): CInt = extern
 
@@ -83,9 +80,6 @@ object uv {
 
   @name("uv_close")
   def close(clientHandle: Ptr[TcpHandle], callback: CFunctionPtr1[Ptr[TcpHandle], Unit]): CInt = extern
-
-  @name("uv_err_name")
-  def errName(errorCode: CInt): CString = extern
 
   /*
   uv_timer_t
@@ -120,6 +114,20 @@ object uv {
 
   @name("uv_idle_stop")
   def idleStop(handle: Ptr[IdleHandle]): CInt = extern
+
+  /*
+  miscellaneous utilities
+   */
+
+  @name("uv_ip4_addr")
+  def ip4Addr(ip: CString, port: CInt, addr: Ptr[sockaddr_in]): CInt = extern
+
+  /*
+  error handling
+   */
+
+  @name("uv_err_name")
+  def errName(errorCode: CInt): CString = extern
 
 }
 
