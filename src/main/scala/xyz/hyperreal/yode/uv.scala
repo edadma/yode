@@ -8,12 +8,32 @@ import scala.scalanative.posix.netinet.in.sockaddr_in
 @extern
 object uv {
 
+  /*
+  event loop
+   */
   type Loop = Ptr[Byte]
+
+  @name("uv_default_loop")
+  def defaultLoop(): Ptr[Loop] = extern
+
+  @name("uv_run")
+  def run(loop: Ptr[Loop], runMode: CInt): CInt = extern
+
+  @name("uv_loop_size")
+  def loopSize(): CSize = extern
 
   type Buffer = CStruct2[
     CString, // char* base;
     CSize // size_t len;
   ]
+
+  /*
+  handles
+   */
+  type Handle = Long
+
+  @name("uv_handle_size")
+  def handleSize(h_type: Int): CSize = extern
 
   type TcpHandle = Ptr[Byte]
 
@@ -31,21 +51,6 @@ object uv {
     CInt, // int error;
     CArray[Buffer, _4] // uv_buf_t bufsml[4];
   ]
-
-  @name("uv_ip4_addr")
-  def ip4Addr(ip: CString, port: CInt, addr: Ptr[sockaddr_in]): CInt = extern
-
-  @name("uv_default_loop")
-  def defaultLoop(): Ptr[Loop] = extern
-
-  @name("uv_run")
-  def run(loop: Ptr[Loop], runMode: CInt): CInt = extern
-
-  @name("uv_loop_size")
-  def loopSize(): CSize = extern
-
-  @name("uv_handle_size")
-  def handleSize(h_type: Int): CSize = extern
 
   @name("uv_tcp_init")
   def tcpInit(loop: Ptr[Loop], handle: Ptr[TcpHandle]): CInt = extern
@@ -75,9 +80,6 @@ object uv {
 
   @name("uv_close")
   def close(clientHandle: Ptr[TcpHandle], callback: CFunctionPtr1[Ptr[TcpHandle], Unit]): CInt = extern
-
-  @name("uv_err_name")
-  def errName(errorCode: CInt): CString = extern
 
   /*
   uv_timer_t
@@ -112,6 +114,20 @@ object uv {
 
   @name("uv_idle_stop")
   def idleStop(handle: Ptr[IdleHandle]): CInt = extern
+
+  /*
+  miscellaneous utilities
+   */
+
+  @name("uv_ip4_addr")
+  def ip4Addr(ip: CString, port: CInt, addr: Ptr[sockaddr_in]): CInt = extern
+
+  /*
+  error handling
+   */
+
+  @name("uv_err_name")
+  def errName(errorCode: CInt): CString = extern
 
 }
 

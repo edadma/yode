@@ -40,35 +40,50 @@ object Main extends App {
       .text("load and execute program from <file>")
   }
 
-  var timers            = new mutable.HashMap[Long, yola.FunctionAST]
+  var handles           = new mutable.HashMap[Long, yola.FunctionAST]
   implicit val toplevel = new yola.Scope(null)
 
-  def timerCallback(handle: Ptr[uv.TimerHandle]): Unit = {
-    yola.Interpreter.call(null, timers(handle.cast[Long]), null, List(TimerHandle(handle)))
+  def uvCallback(handle: Ptr[uv.TimerHandle]): Unit = {
+    yola.Interpreter.call(null, handles(handle.cast[Long]), null, List(HandleWrapper(handle)))
   }
 
-  val timerCallbackPtr = CFunctionPtr.fromFunction1(timerCallback)
-  val loop             = uv.defaultLoop()
+  val uvCallbackPtr = CFunctionPtr.fromFunction1(uvCallback)
+  val loop          = uv.defaultLoop()
 
   toplevel.vars("console") = Map("log" -> ((args: List[Any]) => println(args map yola.display mkString ", ")))
   toplevel.vars("setInterval") = (args: List[Any]) => {
     val timerHandle = stdlib.malloc(uv.handleSize(uvConstants.TIMER_HANDLE)).cast[Ptr[uv.TimerHandle]]
 
     uv.timerInit(loop, timerHandle)
-    timers(timerHandle.cast[Long]) = args.head.asInstanceOf[yola.FunctionAST]
+    handles(timerHandle.cast[Long]) = args.head.asInstanceOf[yola.FunctionAST]
     uv.timerStart(
       timerHandle,
-      timerCallbackPtr,
+      uvCallbackPtr,
       args.tail.head.asInstanceOf[Int],
       args.tail.head.asInstanceOf[Int]
     )
 
-    TimerHandle(timerHandle)
+    HandleWrapper(timerHandle)
   }
   toplevel.vars("clearInterval") = (args: List[Any]) =>
     args.head match {
-      case TimerHandle(handle) =>
+      case HandleWrapper(handle) =>
         uv.timerStop(handle)
+        stdlib.free(handle.cast[Ptr[Byte]])
+  }
+  toplevel.vars("setIdle") = (args: List[Any]) => {
+    val idleHandle = stdlib.malloc(uv.handleSize(uvConstants.TIMER_HANDLE)).cast[Ptr[uv.IdleHandle]]
+
+    uv.idleInit(loop, idleHandle)
+    handles(idleHandle.cast[Long]) = args.head.asInstanceOf[yola.FunctionAST]
+    uv.idleStart(idleHandle, uvCallbackPtr)
+
+    HandleWrapper(idleHandle)
+  }
+  toplevel.vars("clearIdle") = (args: List[Any]) =>
+    args.head match {
+      case HandleWrapper(handle) =>
+        uv.idleStop(handle)
         stdlib.free(handle.cast[Ptr[Byte]])
   }
 
@@ -93,7 +108,7 @@ object Main extends App {
 
 }
 
-case class TimerHandle(handle: Ptr[uv.TimerHandle])
+case class HandleWrapper(handle: Ptr[uv.Handle])
 /*
 
   case class ServerConfig(host: String = "127.0.0.1", port: Int = 7000)
