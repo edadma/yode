@@ -11,7 +11,7 @@
 			"file": "src/main/scala/xyz/hyperreal/yode/Main.scala",
 			"settings":
 			{
-				"buffer_size": 2504,
+				"buffer_size": 4612,
 				"encoding": "UTF-8",
 				"line_ending": "Unix"
 			}
@@ -116,15 +116,15 @@
 					"semi_transient": false,
 					"settings":
 					{
-						"buffer_size": 2504,
+						"buffer_size": 4612,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								164,
-								164
+								0,
+								0
 							]
 						],
 						"settings":
