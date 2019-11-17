@@ -1,5 +1,7 @@
 package xyz.hyperreal.yode
 
+import xyz.hyperreal.yode.uv.Utsname
+
 import scala.collection.mutable
 import scala.scalanative.native._
 //import scala.scalanative.posix.netinet.in.sockaddr_in
@@ -49,8 +51,10 @@ object Main extends App {
 
   val uvCallbackPtr = CFunctionPtr.fromFunction1(uvCallback)
   val loop          = uv.defaultLoop()
+  val prt           = (args: List[Any]) => println(args map yola.display mkString ", ")
 
-  toplevel.vars("console") = Map("log" -> ((args: List[Any]) => println(args map yola.display mkString ", ")))
+  toplevel.vars("println") = prt
+  toplevel.vars("console") = Map("log" -> prt)
   toplevel.vars("setInterval") = (args: List[Any]) => {
     val timerHandle = stdlib.malloc(uv.handleSize(uvConstants.TIMER_HANDLE)).cast[Ptr[uv.TimerHandle]]
 
@@ -85,6 +89,25 @@ object Main extends App {
       case HandleWrapper(handle) =>
         uv.idleStop(handle)
         stdlib.free(handle.cast[Ptr[Byte]])
+  }
+  toplevel.vars("hrTime") = (args: List[Any]) =>
+    args match {
+      case Nil => uv.hrTime.asInstanceOf[Long]
+      case _   => illegalArguments("hrTime", args, 0)
+  }
+  toplevel.vars("osUname") = (args: List[Any]) =>
+    args match {
+      case Nil =>
+        val uname = stackalloc[Utsname]
+
+        bailOnError(uv.osUname(uname))
+        Map(
+          "sysname" -> fromCString(uname._1.cast[CString]),
+          "release" -> fromCString(uname._2.cast[CString]),
+          "version" -> fromCString(uname._3.cast[CString]),
+          "machine" -> fromCString(uname._4.cast[CString])
+        )
+      case _ => illegalArguments("osUname", args, 0)
   }
 
   parser.parse(args, Options()) match {

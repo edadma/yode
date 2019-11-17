@@ -6,4 +6,6 @@ def callback( handle ) =
     else
         clearInterval( handle )
 
-setIdle( callback, 1000 )
+//setIdle( callback, 1000 )
+
+println( osUname() )

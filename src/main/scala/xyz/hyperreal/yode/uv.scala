@@ -122,6 +122,16 @@ object uv {
   @name("uv_ip4_addr")
   def ip4Addr(ip: CString, port: CInt, addr: Ptr[sockaddr_in]): CInt = extern
 
+  @name("uv_hrtime")
+  def hrTime(): ULong = extern
+
+  type _256 = Digit[_2, Digit[_5, _6]]
+
+  type Utsname = CStruct4[CArray[UByte, _256], CArray[UByte, _256], CArray[UByte, _256], CArray[UByte, _256]]
+
+  @name("uv_os_uname")
+  def osUname(utsname: Ptr[Utsname]): CInt = extern
+
   /*
   error handling
    */
