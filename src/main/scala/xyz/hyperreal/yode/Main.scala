@@ -40,11 +40,12 @@ object Main extends App {
       .text("load and execute program from <file>")
   }
 
-  var handles           = new mutable.HashMap[Long, yola.FunctionAST]
+  var handles           = new mutable.HashMap[Long, yola.FunctionExpressionAST]
   implicit val toplevel = new yola.Scope(null)
+  val interp            = new yola.Interpreter(Modules.importModule)
 
   def uvCallback(handle: Ptr[uv.TimerHandle]): Unit = {
-    yola.Interpreter.call(null, handles(handle.cast[Long]), null, List(HandleWrapper(handle)))
+    interp.call(null, handles(handle.cast[Long]), null, List(HandleWrapper(handle)))
   }
 
   val uvCallbackPtr = CFunctionPtr.fromFunction1(uvCallback)
@@ -57,7 +58,7 @@ object Main extends App {
     val timerHandle = stdlib.malloc(uv.handleSize(uvConstants.TIMER_HANDLE)).cast[Ptr[uv.TimerHandle]]
 
     uv.timerInit(loop, timerHandle)
-    handles(timerHandle.cast[Long]) = args.head.asInstanceOf[yola.FunctionAST]
+    handles(timerHandle.cast[Long]) = args.head.asInstanceOf[yola.FunctionExpressionAST]
     uv.timerStart(
       timerHandle,
       uvCallbackPtr,
@@ -77,7 +78,7 @@ object Main extends App {
     val idleHandle = stdlib.malloc(uv.handleSize(uvConstants.TIMER_HANDLE)).cast[Ptr[uv.IdleHandle]]
 
     uv.idleInit(loop, idleHandle)
-    handles(idleHandle.cast[Long]) = args.head.asInstanceOf[yola.FunctionAST]
+    handles(idleHandle.cast[Long]) = args.head.asInstanceOf[yola.FunctionExpressionAST]
     uv.idleStart(idleHandle, uvCallbackPtr)
 
     HandleWrapper(idleHandle)
@@ -110,7 +111,7 @@ object Main extends App {
 
   def run(script: String) = {
     val parser = new yola.YParser
-    yola.Interpreter(parser.parseFromString(script, parser.source))
+    interp(parser.parseFromString(script, parser.source))
   }
 
 }
