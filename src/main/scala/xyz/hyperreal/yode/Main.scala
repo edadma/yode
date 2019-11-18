@@ -40,9 +40,9 @@ object Main extends App {
       .text("load and execute program from <file>")
   }
 
-  var handles           = new mutable.HashMap[Long, yola.FunctionExpressionAST]
-  implicit val toplevel = new yola.Scope(null)
-  val interp            = new yola.Interpreter(Modules.importModule)
+  var handles         = new mutable.HashMap[Long, yola.FunctionExpressionAST]
+  implicit val global = new yola.Scope(null)
+  val interp          = new yola.Interpreter(Modules.importModule)
 
   def uvCallback(handle: Ptr[uv.TimerHandle]): Unit = {
     interp.call(null, handles(handle.cast[Long]), null, List(HandleWrapper(handle)))
@@ -52,9 +52,9 @@ object Main extends App {
   val loop          = uv.defaultLoop()
   val prt           = (args: List[Any]) => println(args map yola.display mkString ", ")
 
-  toplevel.vars("println") = prt
-  toplevel.vars("console") = Map("log" -> prt)
-  toplevel.vars("setInterval") = (args: List[Any]) => {
+  global.vars("println") = prt
+  global.vars("console") = Map("log" -> prt)
+  global.vars("setInterval") = (args: List[Any]) => {
     val timerHandle = stdlib.malloc(uv.handleSize(uvConstants.TIMER_HANDLE)).cast[Ptr[uv.TimerHandle]]
 
     uv.timerInit(loop, timerHandle)
@@ -68,13 +68,13 @@ object Main extends App {
 
     HandleWrapper(timerHandle)
   }
-  toplevel.vars("clearInterval") = (args: List[Any]) =>
+  global.vars("clearInterval") = (args: List[Any]) =>
     args.head match {
       case HandleWrapper(handle) =>
         uv.timerStop(handle)
         stdlib.free(handle.cast[Ptr[Byte]])
   }
-  toplevel.vars("setIdle") = (args: List[Any]) => {
+  global.vars("setIdle") = (args: List[Any]) => {
     val idleHandle = stdlib.malloc(uv.handleSize(uvConstants.TIMER_HANDLE)).cast[Ptr[uv.IdleHandle]]
 
     uv.idleInit(loop, idleHandle)
@@ -83,13 +83,13 @@ object Main extends App {
 
     HandleWrapper(idleHandle)
   }
-  toplevel.vars("clearIdle") = (args: List[Any]) =>
+  global.vars("clearIdle") = (args: List[Any]) =>
     args.head match {
       case HandleWrapper(handle) =>
         uv.idleStop(handle)
         stdlib.free(handle.cast[Ptr[Byte]])
   }
-  toplevel.vars("hrTime") = (args: List[Any]) =>
+  global.vars("hrTime") = (args: List[Any]) =>
     args match {
       case Nil => uv.hrTime.asInstanceOf[Long]
       case _   => illegalArguments("hrTime", args, 0)

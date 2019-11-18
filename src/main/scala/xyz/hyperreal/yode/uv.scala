@@ -139,6 +139,9 @@ object uv {
   @name("uv_err_name")
   def errName(errorCode: CInt): CString = extern
 
+  @name("uv_strerror")
+  def strError(errorCode: CInt): CString = extern
+
 }
 
 object uvConstants {
