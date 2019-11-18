@@ -32,5 +32,5 @@ libraryDependencies ++= Seq(
 )
 
 libraryDependencies ++= Seq(
-  "xyz.hyperreal" %%% "yola" % "0.1i.0"
+  "xyz.hyperreal" %%% "yola" % "0.1j.0"
 )

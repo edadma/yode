@@ -1,0 +1,3 @@
+import yode.os._
+
+println( osUname() )
