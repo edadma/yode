@@ -12,17 +12,21 @@ object Modules {
         case Nil =>
           val mod = map.asInstanceOf[Map[String, List[Any] => Any]]
 
-          mod get name match {
-            case None => printError(s"member '$name' not found")
-            case Some(m) =>
-              val mem =
-                rename match {
-                  case None          => name
-                  case Some(newname) => newname
-                }
+          if (name == "_")
+            for ((k, v) <- mod)
+              scope.declare(null, k, v)
+          else
+            mod get name match {
+              case None => printError(s"member '$name' not found")
+              case Some(m) =>
+                val mem =
+                  rename match {
+                    case None          => name
+                    case Some(newname) => newname
+                  }
 
-              scope(mem) = m
-          }
+                scope.declare(null, mem, m)
+            }
         case h :: t =>
           map get h match {
             case None    => printError(s"module '$h' not found")
