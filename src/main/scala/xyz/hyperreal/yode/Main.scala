@@ -40,56 +40,12 @@ object Main extends App {
       .text("load and execute program from <file>")
   }
 
-  var handles         = new mutable.HashMap[Long, yola.FunctionExpressionAST]
   implicit val global = new yola.Scope(null)
-  val interp          = new yola.Interpreter(null)
-
-  def uvCallback(handle: Ptr[uv.TimerHandle]): Unit = {
-    interp.call(null, handles(handle.cast[Long]), null, List(HandleWrapper(handle)))
-  }
-
-  val uvCallbackPtr = CFunctionPtr.fromFunction1(uvCallback)
-  val loop          = uv.defaultLoop()
 
   for ((k, v) <- module.Global.exports)
     global.vars(k) = v
 
-  global.vars("yode") = Map("os" -> module.Os.exports, "util" -> module.Util.exports)
-  global.vars("setInterval") = (args: List[Any]) => {
-    val timerHandle = stdlib.malloc(uv.handleSize(uvConstants.TIMER_HANDLE)).cast[Ptr[uv.TimerHandle]]
-
-    uv.timerInit(loop, timerHandle)
-    handles(timerHandle.cast[Long]) = args.head.asInstanceOf[yola.FunctionExpressionAST]
-    uv.timerStart(
-      timerHandle,
-      uvCallbackPtr,
-      args.tail.head.asInstanceOf[Int],
-      args.tail.head.asInstanceOf[Int]
-    )
-
-    HandleWrapper(timerHandle)
-  }
-  global.vars("clearInterval") = (args: List[Any]) =>
-    args.head match {
-      case HandleWrapper(handle) =>
-        uv.timerStop(handle)
-        stdlib.free(handle.cast[Ptr[Byte]])
-  }
-  global.vars("setIdle") = (args: List[Any]) => {
-    val idleHandle = stdlib.malloc(uv.handleSize(uvConstants.TIMER_HANDLE)).cast[Ptr[uv.IdleHandle]]
-
-    uv.idleInit(loop, idleHandle)
-    handles(idleHandle.cast[Long]) = args.head.asInstanceOf[yola.FunctionExpressionAST]
-    uv.idleStart(idleHandle, uvCallbackPtr)
-
-    HandleWrapper(idleHandle)
-  }
-  global.vars("clearIdle") = (args: List[Any]) =>
-    args.head match {
-      case HandleWrapper(handle) =>
-        uv.idleStop(handle)
-        stdlib.free(handle.cast[Ptr[Byte]])
-  }
+  global.vars("yode") = Map("os" -> module.Os.exports, "util" -> module.Util.exports, "idle" -> module.Idle.exports)
 
   parser.parse(args, Options()) match {
     case Some(options) =>
@@ -112,7 +68,6 @@ object Main extends App {
 
 }
 
-case class HandleWrapper(handle: Ptr[uv.Handle])
 /*
 
   case class ServerConfig(host: String = "127.0.0.1", port: Int = 7000)

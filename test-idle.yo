@@ -1,0 +1,11 @@
+import yode.idle._
+
+var count = 0
+
+def callback( handle ) =
+    if (count++ < 3)
+        console.log("Yo Yo Yode! $count")
+    else
+        clearIdle( handle )
+
+setIdle( callback )
