@@ -1,5 +1,7 @@
 package xyz.hyperreal.yode
 
+import xyz.hyperreal.yode.modules._
+
 import scala.collection.mutable
 import scala.scalanative.native._
 //import scala.scalanative.posix.netinet.in.sockaddr_in
@@ -42,7 +44,7 @@ object Main extends App {
 
   var handles         = new mutable.HashMap[Long, yola.FunctionExpressionAST]
   implicit val global = new yola.Scope(null)
-  val interp          = new yola.Interpreter(Modules.importModule)
+  val interp          = new yola.Interpreter(null)
 
   def uvCallback(handle: Ptr[uv.TimerHandle]): Unit = {
     interp.call(null, handles(handle.cast[Long]), null, List(HandleWrapper(handle)))
@@ -50,10 +52,13 @@ object Main extends App {
 
   val uvCallbackPtr = CFunctionPtr.fromFunction1(uvCallback)
   val loop          = uv.defaultLoop()
-  val prt           = (args: List[Any]) => println(args map yola.display mkString ", ")
 
-  global.vars("println") = prt
-  global.vars("console") = Map("log" -> prt)
+  for ((k, v) <- Global.module)
+    global.vars(k) = v
+
+  global.vars("yode") = Map(
+    "os" -> Os.module
+  )
   global.vars("setInterval") = (args: List[Any]) => {
     val timerHandle = stdlib.malloc(uv.handleSize(uvConstants.TIMER_HANDLE)).cast[Ptr[uv.TimerHandle]]
 
