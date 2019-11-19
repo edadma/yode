@@ -123,7 +123,7 @@ object uv {
   def ip4Addr(ip: CString, port: CInt, addr: Ptr[sockaddr_in]): CInt = extern
 
   @name("uv_hrtime")
-  def hrTime(): ULong = extern
+  def hrTime(): CUnsignedLong = extern
 
   type _256 = Digit[_2, Digit[_5, _6]]
 

@@ -1,7 +1,5 @@
 package xyz.hyperreal.yode
 
-import xyz.hyperreal.yode.modules._
-
 import scala.collection.mutable
 import scala.scalanative.native._
 //import scala.scalanative.posix.netinet.in.sockaddr_in
@@ -53,12 +51,10 @@ object Main extends App {
   val uvCallbackPtr = CFunctionPtr.fromFunction1(uvCallback)
   val loop          = uv.defaultLoop()
 
-  for ((k, v) <- Global.module)
+  for ((k, v) <- module.Global.exports)
     global.vars(k) = v
 
-  global.vars("yode") = Map(
-    "os" -> Os.module
-  )
+  global.vars("yode") = Map("os" -> module.Os.exports, "util" -> module.Util.exports)
   global.vars("setInterval") = (args: List[Any]) => {
     val timerHandle = stdlib.malloc(uv.handleSize(uvConstants.TIMER_HANDLE)).cast[Ptr[uv.TimerHandle]]
 
@@ -93,11 +89,6 @@ object Main extends App {
       case HandleWrapper(handle) =>
         uv.idleStop(handle)
         stdlib.free(handle.cast[Ptr[Byte]])
-  }
-  global.vars("hrTime") = (args: List[Any]) =>
-    args match {
-      case Nil => uv.hrTime.asInstanceOf[Long]
-      case _   => illegalArguments("hrTime", args, 0)
   }
 
   parser.parse(args, Options()) match {

@@ -1,4 +1,4 @@
-package xyz.hyperreal.yode.modules
+package xyz.hyperreal.yode.module
 
 import xyz.hyperreal.yode._
 import xyz.hyperreal.yola
@@ -9,7 +9,7 @@ object Global {
 
   val prt = (args: List[Any]) => println(args map yola.display mkString ", ")
 
-  val module =
+  val exports =
     Map(
       "println" -> prt,
       "console" -> Map("log" -> prt)

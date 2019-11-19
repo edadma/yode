@@ -1,4 +1,4 @@
-package xyz.hyperreal.yode.modules
+package xyz.hyperreal.yode.module
 
 import xyz.hyperreal.yode._
 
@@ -6,7 +6,7 @@ import scala.scalanative.native._
 
 object Os {
 
-  val module =
+  val exports =
     Map(
       "uname" -> ((args: List[Any]) =>
         args match {
