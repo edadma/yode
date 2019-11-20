@@ -1,7 +1,6 @@
 package xyz.hyperreal.yode
 
 import utest._
-import xyz.hyperreal.yode.Http
 import xyz.hyperreal.yode.Http.{Header, StartLine}
 
 object HttpTest extends TestSuite {
