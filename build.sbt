@@ -14,6 +14,8 @@ scalacOptions ++= Seq( "-deprecation", "-feature", "-unchecked", "-language:post
 
 organization := "xyz.hyperreal"
 
+resolvers += "Hyperreal Repository" at "https://dl.bintray.com/edadma/maven"
+
 mainClass in (Compile, run) := Some( "xyz.hyperreal." + name.value.replace('-', '_') + ".Main" )
 
 licenses := Seq("ISC" -> url("https://opensource.org/licenses/isc"))
