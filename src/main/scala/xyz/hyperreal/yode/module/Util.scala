@@ -2,6 +2,8 @@ package xyz.hyperreal.yode.module
 
 import xyz.hyperreal.yode._
 
+import scala.scalanative.native._
+
 object Util {
 
   val exports =
@@ -22,6 +24,15 @@ object Util {
 //             h,
 //             System.currentTimeMillis)
           case _ => illegalArguments("hrTime", args, 0)
+        }),
+      "upTime" -> ((args: List[Any]) =>
+        args match {
+          case Nil =>
+            val uptime = stackalloc[CDouble]
+
+            bailOnError(uv.upTime(uptime))
+            (!uptime).cast[Double]
+          case _ => illegalArguments("upTime", args, 0)
         })
     )
 

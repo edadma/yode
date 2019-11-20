@@ -27,15 +27,17 @@ object uv {
     CSize // size_t len;
   ]
 
-  /*
-  handles
-   */
-  type Handle = Long
-
-  @name("uv_handle_size")
-  def handleSize(h_type: Int): CSize = extern
-
   type TcpHandle = Ptr[Byte]
+
+  @name("uv_tcp_init")
+  def tcpInit(loop: Ptr[Loop], handle: Ptr[TcpHandle]): CInt = extern
+
+  @name("uv_tcp_bind")
+  def tcpBind(handle: Ptr[TcpHandle], socketAddress: Ptr[sockaddr_in], flags: CUnsignedInt): CInt = extern
+
+  /*
+  uv_stream_t
+   */
 
   type Write = CStruct12[
     Ptr[Unit], // void* data;
@@ -52,11 +54,12 @@ object uv {
     CArray[Buffer, _4] // uv_buf_t bufsml[4];
   ]
 
-  @name("uv_tcp_init")
-  def tcpInit(loop: Ptr[Loop], handle: Ptr[TcpHandle]): CInt = extern
-
-  @name("uv_tcp_bind")
-  def tcpBind(handle: Ptr[TcpHandle], socketAddress: Ptr[sockaddr_in], flags: CUnsignedInt): CInt = extern
+  @name("uv_write")
+  def write(req: Ptr[Write],
+            clientHandle: Ptr[TcpHandle],
+            buffers: Ptr[Buffer],
+            numberOfBuffers: UInt,
+            onWritten: CFunctionPtr2[Ptr[Write], CInt, Unit]): CInt = extern
 
   @name("uv_listen")
   def listen(handle: Ptr[TcpHandle],
@@ -71,12 +74,14 @@ object uv {
                 allocateBuffer: CFunctionPtr3[Ptr[TcpHandle], CSize, Ptr[Buffer], Unit],
                 onRead: CFunctionPtr3[Ptr[TcpHandle], CSSize, Ptr[Buffer], Unit]): CInt = extern
 
-  @name("uv_write")
-  def write(req: Ptr[Write],
-            clientHandle: Ptr[TcpHandle],
-            buffers: Ptr[Buffer],
-            numberOfBuffers: UInt,
-            onWritten: CFunctionPtr2[Ptr[Write], CInt, Unit]): CInt = extern
+  /*
+  uv_handle_t
+   */
+
+  type Handle = Long
+
+  @name("uv_handle_size")
+  def handleSize(h_type: Int): CSize = extern
 
   @name("uv_close")
   def close(clientHandle: Ptr[TcpHandle], callback: CFunctionPtr1[Ptr[TcpHandle], Unit]): CInt = extern
@@ -131,6 +136,9 @@ object uv {
 
   @name("uv_os_uname")
   def osUname(utsname: Ptr[Utsname]): CInt = extern
+
+  @name("uv_uptime")
+  def upTime(uptime: Ptr[CDouble]): CInt = extern
 
   /*
   error handling

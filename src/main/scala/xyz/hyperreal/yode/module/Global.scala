@@ -12,7 +12,6 @@ object Global {
   val exports =
     Map(
       "println" -> prt,
-      "console" -> Map("log" -> prt),
       "setInterval" -> ((args: List[Any]) => {
         val timerHandle = stdlib.malloc(uv.handleSize(uvConstants.TIMER_HANDLE)).cast[Ptr[uv.TimerHandle]]
 
