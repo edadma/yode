@@ -45,7 +45,7 @@ object Main extends App {
   for ((k, v) <- module.Global.exports)
     global.vars(k) = v
 
-  global.vars("yode") = Map("os" -> module.Os.exports, "util" -> module.Util.exports, "idle" -> module.Idle.exports)
+  global.vars("yode") = Map("util" -> module.Util.exports, "idle" -> module.Idle.exports)
 
   parser.parse(args, Options()) match {
     case Some(options) =>

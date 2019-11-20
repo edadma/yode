@@ -9,7 +9,7 @@ import scala.scalanative.posix.netinet.in.sockaddr_in
 object uv {
 
   /*
-  event loop
+  uv_loop_t
    */
   type Loop = Ptr[Byte]
 
@@ -26,6 +26,10 @@ object uv {
     CString, // char* base;
     CSize // size_t len;
   ]
+
+  /*
+  uv_tcp_t
+   */
 
   type TcpHandle = Ptr[Byte]
 
@@ -139,6 +143,9 @@ object uv {
 
   @name("uv_uptime")
   def upTime(uptime: Ptr[CDouble]): CInt = extern
+
+  @name("uv_os_homedir")
+  def osHomedir(buffer: Ptr[Char], size: Ptr[CSize]): CInt = extern
 
   /*
   error handling

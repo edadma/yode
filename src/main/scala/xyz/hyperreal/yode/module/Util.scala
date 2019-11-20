@@ -6,8 +6,24 @@ import scala.scalanative.native._
 
 object Util {
 
+  val BUF_SIZE = 1000
+
   val exports =
     Map(
+      "osUname" -> ((args: List[Any]) =>
+        args match {
+          case Nil =>
+            val uname = stackalloc[uv.Utsname]
+
+            bailOnError(uv.osUname(uname))
+            Map(
+              "sysname" -> fromCString(uname._1.cast[CString]),
+              "release" -> fromCString(uname._2.cast[CString]),
+              "version" -> fromCString(uname._3.cast[CString]),
+              "machine" -> fromCString(uname._4.cast[CString])
+            )
+          case _ => illegalArguments("osUname", args, 0)
+        }),
       "hrTime" -> ((args: List[Any]) =>
         args match {
           case Nil => uv.hrTime.asInstanceOf[Long]
@@ -33,6 +49,17 @@ object Util {
             bailOnError(uv.upTime(uptime))
             (!uptime).cast[Double]
           case _ => illegalArguments("upTime", args, 0)
+        }),
+      "osHomedir" -> ((args: List[Any]) =>
+        args match {
+          case Nil =>
+            val buffer = stackalloc[Char](BUF_SIZE)
+            val size   = stackalloc[CSize]
+
+            !size = BUF_SIZE
+            bailOnError(uv.osHomedir(buffer, size))
+            fromCString(buffer.cast[CString])
+          case _ => illegalArguments("osHomedir", args, 0)
         })
     )
 

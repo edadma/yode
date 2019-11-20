@@ -22,10 +22,9 @@ package object yode {
 
   def bailOnError(f: => CInt) = {
     val result = f
-    if (result < 0) {
-      val errorName = uv.errName(result)
-      printError(s"Failed: $result ${fromCString(errorName)}")
-    }
+
+    if (result < 0)
+      printError(s"Error: $result, ${fromCString(uv.errName(result))}, ${fromCString(uv.strError(result))}")
   }
 
   def printError(s: String) = {
