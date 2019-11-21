@@ -23,7 +23,6 @@ object HttpTest extends TestSuite {
     'parseInvalidHttpRequest - {
       assert(Http.parseRequest("yolo").isLeft)
     }
-
   }
 
 }
