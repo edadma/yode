@@ -7,7 +7,6 @@ import scala.scalanative.posix.netinet.in.sockaddr_in
 @link("uv")
 @extern
 object uv {
-
   /*
   uv_loop_t
    */
@@ -24,7 +23,7 @@ object uv {
 
   type Buffer = CStruct2[
     CString, // char* base;
-    CSize // size_t len;
+    CSize    // size_t len;
   ]
 
   /*
@@ -44,39 +43,45 @@ object uv {
    */
 
   type Write = CStruct12[
-    Ptr[Unit], // void* data;
-    CInt, // uv_req_type type;
-    CArray[Ptr[Unit], _6], // void* reserved[6];
+    Ptr[Unit],                            // void* data;
+    CInt,                                 // uv_req_type type;
+    CArray[Ptr[Unit], _6],                // void* reserved[6];
     CFunctionPtr2[Ptr[Unit], CInt, Unit], // uv_write_cb cb; (Ptr[Unit] is actually Ptr[Write])
-    Ptr[TcpHandle], // uv_stream_t* send_handle;
-    Ptr[TcpHandle], // uv_stream_t* handle;
-    CArray[Ptr[Unit], _2], // void* queue[2];
-    UInt, // unsigned int write_index;
-    Ptr[Buffer], // uv_buf_t* bufs;
-    UInt, // unsigned int nbufs;
-    CInt, // int error;
-    CArray[Buffer, _4] // uv_buf_t bufsml[4];
+    Ptr[TcpHandle],                       // uv_stream_t* send_handle;
+    Ptr[TcpHandle],                       // uv_stream_t* handle;
+    CArray[Ptr[Unit], _2],                // void* queue[2];
+    UInt,                                 // unsigned int write_index;
+    Ptr[Buffer],                          // uv_buf_t* bufs;
+    UInt,                                 // unsigned int nbufs;
+    CInt,                                 // int error;
+    CArray[Buffer, _4]                    // uv_buf_t bufsml[4];
   ]
 
   @name("uv_write")
-  def write(req: Ptr[Write],
-            clientHandle: Ptr[TcpHandle],
-            buffers: Ptr[Buffer],
-            numberOfBuffers: UInt,
-            onWritten: CFunctionPtr2[Ptr[Write], CInt, Unit]): CInt = extern
+  def write(
+      req: Ptr[Write],
+      clientHandle: Ptr[TcpHandle],
+      buffers: Ptr[Buffer],
+      numberOfBuffers: UInt,
+      onWritten: CFunctionPtr2[Ptr[Write], CInt, Unit]
+  ): CInt = extern
 
   @name("uv_listen")
-  def listen(handle: Ptr[TcpHandle],
-             connectionBacklog: CInt,
-             onTcpConnection: CFunctionPtr2[Ptr[TcpHandle], CInt, Unit]): CInt = extern
+  def listen(
+      handle: Ptr[TcpHandle],
+      connectionBacklog: CInt,
+      onTcpConnection: CFunctionPtr2[Ptr[TcpHandle], CInt, Unit]
+  ): CInt = extern
 
   @name("uv_accept")
   def accept(handle: Ptr[TcpHandle], clientHandle: Ptr[TcpHandle]): CInt = extern
 
   @name("uv_read_start")
-  def readStart(clientHandle: Ptr[TcpHandle],
-                allocateBuffer: CFunctionPtr3[Ptr[TcpHandle], CSize, Ptr[Buffer], Unit],
-                onRead: CFunctionPtr3[Ptr[TcpHandle], CSSize, Ptr[Buffer], Unit]): CInt = extern
+  def readStart(
+      clientHandle: Ptr[TcpHandle],
+      allocateBuffer: CFunctionPtr3[Ptr[TcpHandle], CSize, Ptr[Buffer], Unit],
+      onRead: CFunctionPtr3[Ptr[TcpHandle], CSSize, Ptr[Buffer], Unit]
+  ): CInt = extern
 
   /*
   uv_handle_t
@@ -147,6 +152,9 @@ object uv {
   @name("uv_os_homedir")
   def osHomedir(buffer: Ptr[Char], size: Ptr[CSize]): CInt = extern
 
+  @name("uv_os_getenv")
+  def osGetEnv(name: Ptr[Char], buffer: Ptr[Char], size: Ptr[CSize]): CInt = extern
+
   /*
   error handling
    */
@@ -156,11 +164,9 @@ object uv {
 
   @name("uv_strerror")
   def strError(errorCode: CInt): CString = extern
-
 }
 
 object uvConstants {
-
   val RUN_DEFAULT = 0
   val RUN_ONCE    = 1
   val RUN_NOWAIT  = 2
@@ -181,5 +187,4 @@ object uvConstants {
   val UDP_HANDLE      = 15
   val SIGNAL_HANDLE   = 16
   val FILE_HANDLE     = 17
-
 }

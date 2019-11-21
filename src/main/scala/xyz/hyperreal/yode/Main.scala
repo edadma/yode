@@ -63,6 +63,7 @@ object Main extends App {
 
   def run(script: String) = {
     val parser = new yola.YParser
+
     interp(parser.parseFromString(script, parser.source))
   }
 }
