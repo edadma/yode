@@ -40,7 +40,7 @@ object Main extends App {
       .text("load and execute program from <file>")
   }
 
-  implicit val global = new yola.Scope(null)
+  implicit val global = yola.globalScope
 
   for ((k, v) <- module.Global.exports)
     global.vars(k) = v

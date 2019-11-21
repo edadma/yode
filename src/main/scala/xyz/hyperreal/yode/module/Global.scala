@@ -6,7 +6,6 @@ import xyz.hyperreal.yola
 import scala.scalanative.native._
 
 object Global {
-
   val prt = (args: List[Any]) => println(args map yola.display mkString ", ")
 
   val exports =
@@ -26,12 +25,13 @@ object Global {
 
         HandleWrapper(timerHandle)
       }),
-      "clearInterval" -> ((args: List[Any]) =>
-        args.head match {
-          case HandleWrapper(handle) =>
-            uv.timerStop(handle)
-            stdlib.free(handle.cast[Ptr[Byte]])
-        })
+      "clearInterval" -> (
+          (args: List[Any]) =>
+            args.head match {
+              case HandleWrapper(handle) =>
+                uv.timerStop(handle)
+                stdlib.free(handle.cast[Ptr[Byte]])
+            }
+        )
     )
-
 }
