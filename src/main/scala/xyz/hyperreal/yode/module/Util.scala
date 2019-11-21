@@ -59,7 +59,7 @@ object Util {
           (args: List[Any]) =>
             args match {
               case Nil =>
-                val buffer = stackalloc[Char](BUF_SIZE)
+                val buffer = stackalloc[CChar](BUF_SIZE)
                 val size   = stackalloc[CSize]
 
                 !size = BUF_SIZE
@@ -67,21 +67,30 @@ object Util {
                 fromCString(buffer.cast[CString])
               case _ => illegalArguments("osHomedir", args, 0)
             }
-        )
-      // "osGetEnv" -> (
-      //     (args: List[Any]) =>
-      //       args match {
-      //         case List(name: String) =>
-      //           val buffer = stackalloc[Char](BUF_SIZE)
-      //           val size   = stackalloc[CSize]
+        ),
+      "osGetEnv" -> (
+          (args: List[Any]) =>
+            args match {
+              case List(name: String) =>
+                val buffer = stackalloc[CChar](BUF_SIZE)
+                val size   = stackalloc[CSize]
+                val error  = stackalloc[CChar](BUF_SIZE)
 
-      //           Zone { implicit z =>
-      //             !size = BUF_SIZE
-      //             bailOnError(uv.osGetEnv(toCString(name).cast[Ptr[Char]], buffer, size))
-      //             fromCString(buffer.cast[CString])
-      //           }
-      //         case _ => illegalArguments("osGetEnv", args, 1)
-      //       }
-      //   )
+                Zone { implicit z =>
+                  !size = BUF_SIZE
+
+                  val code = uv.osGetEnv(toCString(name), buffer, size)
+
+                  if (code < 0)
+                    if (fromCString(uv.errNamer(code, error, BUF_SIZE)) == "ENOENT")
+                      None
+                    else
+                      bailOnError(code)
+                  else
+                    Some(fromCString(buffer.cast[CString]))
+                }
+              case _ => illegalArguments("osGetEnv", args, 1)
+            }
+        )
     )
 }

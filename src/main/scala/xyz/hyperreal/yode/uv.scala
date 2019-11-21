@@ -150,10 +150,10 @@ object uv {
   def upTime(uptime: Ptr[CDouble]): CInt = extern
 
   @name("uv_os_homedir")
-  def osHomedir(buffer: Ptr[Char], size: Ptr[CSize]): CInt = extern
+  def osHomedir(buffer: Ptr[CChar], size: Ptr[CSize]): CInt = extern
 
   @name("uv_os_getenv")
-  def osGetEnv(name: Ptr[Char], buffer: Ptr[Char], size: Ptr[CSize]): CInt = extern
+  def osGetEnv(name: Ptr[CChar], buffer: Ptr[CChar], size: Ptr[CSize]): CInt = extern
 
   /*
   error handling
@@ -161,6 +161,9 @@ object uv {
 
   @name("uv_err_name")
   def errName(errorCode: CInt): CString = extern
+
+  @name("uv_err_name_r")
+  def errNamer(errorCode: CInt, buf: Ptr[CChar], buflen: CSize): CString = extern
 
   @name("uv_strerror")
   def strError(errorCode: CInt): CString = extern
