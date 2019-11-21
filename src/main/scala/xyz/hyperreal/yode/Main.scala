@@ -10,7 +10,6 @@ import java.nio.charset.StandardCharsets
 import xyz.hyperreal.yola
 
 object Main extends App {
-
   case class Options(file: Option[Path] = None, eval: Option[String] = None, print: Option[String] = None)
 
   private val parser = new scopt.OptionParser[Options]("yode") {
@@ -35,7 +34,8 @@ object Main extends App {
           else if (!Files.isReadable(Paths.get(f)))
             failure(s"file '$f' unreadable")
           else
-          success)
+            success
+      )
       .action((f, c) => c.copy(file = Some(Paths.get(f))))
       .text("load and execute program from <file>")
   }
@@ -65,7 +65,6 @@ object Main extends App {
     val parser = new yola.YParser
     interp(parser.parseFromString(script, parser.source))
   }
-
 }
 
 /*

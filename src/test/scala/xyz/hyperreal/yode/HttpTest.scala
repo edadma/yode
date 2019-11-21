@@ -1,7 +1,8 @@
 package xyz.hyperreal.yode
 
 import utest._
-import xyz.hyperreal.yode.Http.{Header, StartLine}
+
+import Http.{Header, StartLine}
 
 object HttpTest extends TestSuite {
 
@@ -17,12 +18,12 @@ object HttpTest extends TestSuite {
           Header("Host", "localhost:7000"),
           Header("User-Agent", "curl/7.54.0"),
           Header("Accept", "*/*")
-        ))
+        )
+      )
     }
 
     'parseInvalidHttpRequest - {
       assert(Http.parseRequest("yolo").isLeft)
     }
   }
-
 }
