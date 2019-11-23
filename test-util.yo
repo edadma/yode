@@ -1,5 +1,3 @@
 import yode.util._
 
-val Some( a ) = osGetEnv('TERM')
-
-println( a )
+println( osGetEnv('PATH') )

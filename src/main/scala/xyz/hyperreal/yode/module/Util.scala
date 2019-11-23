@@ -24,7 +24,7 @@ object Util {
                 )
               case _ => illegalArguments("osUname", args, 0)
             }
-        ),
+      ),
       "hrTime" -> (
           (args: List[Any]) =>
             args match {
@@ -43,7 +43,7 @@ object Util {
 //             System.currentTimeMillis)
               case _ => illegalArguments("hrTime", args, 0)
             }
-        ),
+      ),
       "upTime" -> (
           (args: List[Any]) =>
             args match {
@@ -54,7 +54,7 @@ object Util {
                 (!uptime).cast[Double]
               case _ => illegalArguments("upTime", args, 0)
             }
-        ),
+      ),
       "osHomedir" -> (
           (args: List[Any]) =>
             args match {
@@ -67,7 +67,7 @@ object Util {
                 fromCString(buffer.cast[CString])
               case _ => illegalArguments("osHomedir", args, 0)
             }
-        ),
+      ),
       "osGetEnv" -> (
           (args: List[Any]) =>
             args match {
@@ -91,6 +91,6 @@ object Util {
                 }
               case _ => illegalArguments("osGetEnv", args, 1)
             }
-        )
+      )
     )
 }
