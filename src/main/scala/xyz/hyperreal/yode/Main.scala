@@ -18,11 +18,30 @@ object Main extends App {
 
   private val parser = new scopt.OptionParser[Options]("yode") {
     head("Yode", "v0.1.0")
+    opt[String]('d', "directory")
+      .text("set application directory")
+      .valueName("<path>")
+      .validate(
+        p =>
+          if (!Files.exists(Paths.get(p)))
+            failure(s"directory '$p' not found")
+          else if (!Files.isDirectory(Paths.get(p)))
+            failure(s"'$p' not a directory")
+          else if (!Files.isReadable(Paths.get(p)))
+            failure(s"directory '$p' unreadable")
+          else
+          success
+      )
+      .action((p, c) => c.copy(dir = Some(Paths.get(p))))
     opt[String]('e', "eval")
       .text("execute program <script>")
       .valueName("<script>")
       .action((f, c) => c.copy(eval = Some(f)))
     help("help").text("print this usage text").abbr("h")
+    opt[String]('m', "module")
+      .text("application entry point is <module>")
+      .valueName("<module>")
+      .action((m, c) => c.copy(eval = Some(m)))
     opt[String]('p', "print")
       .text("execute program <script> and print result")
       .valueName("<script>")
@@ -58,7 +77,8 @@ object Main extends App {
         case Options(None, None, None, Some(script), None) => run(script)
         case Options(None, None, None, None, Some(script)) =>
           println(s"${Console.YELLOW}${run(script)}${Console.RESET}")
-        case Options(Some(path), Some(module), None, None, None) =>
+        case Options(None, Some(module), None, None, None)       => load(null, module)
+        case Options(Some(path), Some(module), None, None, None) => load(path, module)
         case _                                                   => parser.showUsageAsError
       }
     case None => System.exit(1)
@@ -71,6 +91,14 @@ object Main extends App {
 
     interp(parser.parseFromString(script, parser.source))
   }
+
+  def load(dir: Path, mod: String) = {
+    def load(dir: Path) = {}
+
+    load(dir)
+
+  }
+
 }
 
 /*
