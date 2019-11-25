@@ -19,8 +19,8 @@ object Global {
         uv.timerStart(
           timerHandle,
           uvCallbackPtr,
-          args.tail.head.asInstanceOf[Int],
-          args.tail.head.asInstanceOf[Int]
+          args.tail.head.asInstanceOf[BigDecimal].toLongExact,
+          args.tail.head.asInstanceOf[BigDecimal].toLongExact
         )
 
         HandleWrapper(timerHandle)
@@ -32,6 +32,6 @@ object Global {
                 uv.timerStop(handle)
                 stdlib.free(handle.cast[Ptr[Byte]])
             }
-        )
+      )
     )
 }

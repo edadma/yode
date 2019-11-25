@@ -10,7 +10,11 @@ import java.nio.charset.StandardCharsets
 import xyz.hyperreal.yola
 
 object Main extends App {
-  case class Options(file: Option[Path] = None, eval: Option[String] = None, print: Option[String] = None)
+  case class Options(dir: Option[Path] = None,
+                     module: Option[String] = None,
+                     file: Option[Path] = None,
+                     eval: Option[String] = None,
+                     print: Option[String] = None)
 
   private val parser = new scopt.OptionParser[Options]("yode") {
     head("Yode", "v0.1.0")
@@ -34,13 +38,11 @@ object Main extends App {
           else if (!Files.isReadable(Paths.get(f)))
             failure(s"file '$f' unreadable")
           else
-            success
+          success
       )
       .action((f, c) => c.copy(file = Some(Paths.get(f))))
       .text("load and execute program from <file>")
   }
-
-  implicit val global = yola.globalScope
 
   for ((k, v) <- module.Global.exports)
     global.vars(k) = v
@@ -50,11 +52,14 @@ object Main extends App {
   parser.parse(args, Options()) match {
     case Some(options) =>
       options match {
-        case Options(None, None, None)         => println("no REPL yet")
-        case Options(Some(path), None, None)   => run(new String(Files.readAllBytes(path), StandardCharsets.UTF_8))
-        case Options(None, Some(script), None) => run(script)
-        case Options(None, None, Some(script)) => println(s"${Console.YELLOW}${run(script)}${Console.RESET}")
-        case _                                 => parser.showUsageAsError
+        case Options(None, None, None, None, None) => println("no REPL yet")
+        case Options(None, None, Some(path), None, None) =>
+          run(new String(Files.readAllBytes(path), StandardCharsets.UTF_8))
+        case Options(None, None, None, Some(script), None) => run(script)
+        case Options(None, None, None, None, Some(script)) =>
+          println(s"${Console.YELLOW}${run(script)}${Console.RESET}")
+        case Options(Some(path), Some(module), None, None, None) =>
+        case _                                                   => parser.showUsageAsError
       }
     case None => System.exit(1)
   }
