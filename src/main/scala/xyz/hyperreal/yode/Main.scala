@@ -10,14 +10,17 @@ import java.nio.charset.StandardCharsets
 import xyz.hyperreal.yola
 
 object Main extends App {
-  case class Options(dir: Option[Path] = None,
-                     module: Option[String] = None,
-                     file: Option[Path] = None,
-                     eval: Option[String] = None,
-                     print: Option[String] = None)
+
+  case class Options(
+      dir: Option[Path] = None,
+      module: Option[String] = None,
+      file: Option[Path] = None,
+      eval: Option[String] = None,
+      print: Option[String] = None
+  )
 
   private val parser = new scopt.OptionParser[Options]("yode") {
-    head("Yode", "v0.1.0")
+    head("Yode", VERSION)
     opt[String]('d', "directory")
       .text("set application directory")
       .valueName("<path>")
@@ -30,7 +33,7 @@ object Main extends App {
           else if (!Files.isReadable(Paths.get(p)))
             failure(s"directory '$p' unreadable")
           else
-          success
+            success
       )
       .action((p, c) => c.copy(dir = Some(Paths.get(p))))
     opt[String]('e', "eval")
@@ -57,7 +60,7 @@ object Main extends App {
           else if (!Files.isReadable(Paths.get(f)))
             failure(s"file '$f' unreadable")
           else
-          success
+            success
       )
       .action((f, c) => c.copy(file = Some(Paths.get(f))))
       .text("load and execute program from <file>")
@@ -73,7 +76,7 @@ object Main extends App {
       options match {
         case Options(None, None, None, None, None) => println("no REPL yet")
         case Options(None, None, Some(path), None, None) =>
-          run(new String(Files.readAllBytes(path), StandardCharsets.UTF_8))
+          run(read(path))
         case Options(None, None, None, Some(script), None) => run(script)
         case Options(None, None, None, None, Some(script)) =>
           println(s"${Console.YELLOW}${run(script)}${Console.RESET}")
@@ -86,6 +89,8 @@ object Main extends App {
 
   uv.run(loop, uvConstants.RUN_DEFAULT)
 
+  def read(p: Path) = new String(Files.readAllBytes(p), StandardCharsets.UTF_8)
+
   def run(script: String) = {
     val parser = new yola.YParser
 
@@ -96,9 +101,7 @@ object Main extends App {
     def load(dir: Path) = {}
 
     load(dir)
-
   }
-
 }
 
 /*
