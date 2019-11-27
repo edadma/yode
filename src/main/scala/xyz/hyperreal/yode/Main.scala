@@ -1,5 +1,7 @@
 package xyz.hyperreal.yode
 
+import xyz.hyperreal.yola.Scope
+
 import scala.collection.mutable
 import scala.scalanative.native._
 //import scala.scalanative.posix.netinet.in.sockaddr_in
@@ -118,6 +120,30 @@ object Main extends App {
       val rel     = dirabs.relativize(f)
       val modules = rel.getParent.iterator.asScala.toList map (_.toString)
       val module  = rel.getFileName.toString.dropRight(EXTENSION.length)
+      val scope   = new Scope(global)
+
+      def container(ms: List[String], outer: collection.mutable.Map[String, Any]): collection.mutable.Map[String, Any] =
+        ms match {
+          case Nil => outer
+          case h :: t =>
+            val inner =
+              outer get h match {
+                case None =>
+                  val map = new mutable.HashMap[String, Any]
+
+                  outer(h) = map
+                  map
+                case Some(map) => map.asInstanceOf[collection.mutable.Map[String, Any]]
+              }
+
+            container(t, inner)
+        }
+
+      container(modules, scope.vars)(module) = scope
+
+      val parser = new yola.YParser
+
+      interp.declarations(parser.parseFromString(read(f), parser.source))
     }
 
   }
