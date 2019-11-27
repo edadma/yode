@@ -7,6 +7,8 @@ import scala.scalanative.native._
 import java.nio.file.{Files, Path, Paths}
 import java.nio.charset.StandardCharsets
 
+import collection.JavaConverters._
+
 import xyz.hyperreal.yola
 
 object Main extends App {
@@ -33,7 +35,7 @@ object Main extends App {
           else if (!Files.isReadable(Paths.get(p)))
             failure(s"directory '$p' unreadable")
           else
-            success
+          success
       )
       .action((p, c) => c.copy(dir = Some(Paths.get(p))))
     opt[String]('e', "eval")
@@ -60,7 +62,7 @@ object Main extends App {
           else if (!Files.isReadable(Paths.get(f)))
             failure(s"file '$f' unreadable")
           else
-            success
+          success
       )
       .action((f, c) => c.copy(file = Some(Paths.get(f))))
       .text("load and execute program from <file>")
@@ -98,9 +100,21 @@ object Main extends App {
   }
 
   def load(dir: Path, mod: String) = {
-    def load(dir: Path) = {}
+    val files = Files
+      .walk(dir)
+      .iterator
+      .asScala
+      .toList
+      .filter(_.toString.endsWith(".yo"))
 
-    load(dir)
+    for (f <- files) {
+      if (!Files.isRegularFile(f))
+        printError(s"not a file: ${f.toAbsolutePath.normalize}")
+      else if (!Files.isReadable(f))
+        printError(s"not readable: ${f.toAbsolutePath.normalize}")
+
+    }
+
   }
 }
 
