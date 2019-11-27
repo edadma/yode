@@ -5,6 +5,7 @@ import scala.scalanative.native._
 
 package object yode {
   val VERSION         = "0.1.0"
+  val EXTENSION       = ".yo"
   var handles         = new mutable.HashMap[Long, yola.FunctionExpressionAST]
   val uvCallbackPtr   = CFunctionPtr.fromFunction1(uvCallback)
   val loop            = uv.defaultLoop()

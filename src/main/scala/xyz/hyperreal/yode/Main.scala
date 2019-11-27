@@ -100,12 +100,14 @@ object Main extends App {
   }
 
   def load(dir: Path, mod: String) = {
+
+    val dirabs = dir.toAbsolutePath.normalize
     val files = Files
-      .walk(dir)
+      .walk(dirabs)
       .iterator
       .asScala
       .toList
-      .filter(_.toString.endsWith(".yo"))
+      .filter(_.toString.endsWith(EXTENSION))
 
     for (f <- files) {
       if (!Files.isRegularFile(f))
@@ -113,6 +115,9 @@ object Main extends App {
       else if (!Files.isReadable(f))
         printError(s"not readable: ${f.toAbsolutePath.normalize}")
 
+      val rel     = dirabs.relativize(f)
+      val modules = rel.getParent.iterator.asScala.toList map (_.toString)
+      val module  = rel.getFileName.toString.dropRight(EXTENSION.length)
     }
 
   }
