@@ -139,11 +139,11 @@ object Main extends App {
             container(t, inner)
         }
 
-      container(modules, scope.vars)(module) = scope
+      container(modules, global.vars)(module) = scope.vars
 
       val parser = new yola.YParser
 
-      interp.declarations(parser.parseFromString(read(f), parser.source))
+      interp.declarations(parser.parseFromString(read(f), parser.source))(scope)
     }
 
   }
