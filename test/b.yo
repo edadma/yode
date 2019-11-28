@@ -1,3 +1,3 @@
-println( 'b module' )
+val vb = 5
 
 def fb(x) = x + 2
