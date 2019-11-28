@@ -1,3 +1,5 @@
-println('a module')
+import b._
+
+println('a module', fa(3), fb(3))
 
 def fa(x) = x + 1

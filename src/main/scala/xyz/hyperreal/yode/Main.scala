@@ -37,7 +37,7 @@ object Main extends App {
           else if (!Files.isReadable(Paths.get(p)))
             failure(s"directory '$p' unreadable")
           else
-          success
+            success
       )
       .action((p, c) => c.copy(dir = Some(Paths.get(p))))
     opt[String]('e', "eval")
@@ -64,7 +64,7 @@ object Main extends App {
           else if (!Files.isReadable(Paths.get(f)))
             failure(s"file '$f' unreadable")
           else
-          success
+            success
       )
       .action((f, c) => c.copy(file = Some(Paths.get(f))))
       .text("load and execute program from <file>")
@@ -103,7 +103,7 @@ object Main extends App {
     interp(parser.parseFromString(script, parser.source))
   }
 
-  def load(dir: Path, mod: String) = {
+  def load(dir: Path, start: String) = {
     val dirabs = dir.toAbsolutePath.normalize
     val files = Files
       .walk(dirabs)
@@ -111,6 +111,7 @@ object Main extends App {
       .asScala
       .toList
       .filter(_.toString.endsWith(EXTENSION))
+    val moduleMap = new mutable.HashMap[(List[String], String), (yola.AST, Scope)]
 
     for (f <- files) {
       if (!Files.isRegularFile(f))
@@ -119,10 +120,13 @@ object Main extends App {
         printError(s"not readable: ${f.toAbsolutePath.normalize}")
 
       val rel = dirabs.relativize(f)
-      println(rel)
-      val modules = rel.getParent.iterator.asScala.toList map (_.toString)
-      val module  = rel.getFileName.toString.dropRight(EXTENSION.length)
-      val scope   = new Scope(global)
+      val modules =
+        rel.getParent match {
+          case null => Nil
+          case p    => p.iterator.asScala.toList map (_.toString)
+        }
+      val module = rel.getFileName.toString.dropRight(EXTENSION.length)
+      val scope  = new Scope(global)
 
       def container(ms: List[String], outer: collection.mutable.Map[String, Any]): collection.mutable.Map[String, Any] =
         ms match {
@@ -144,11 +148,18 @@ object Main extends App {
       container(modules, global.vars)(module) = scope.vars
 
       val parser = new yola.YParser
+      val ast    = parser.parseFromString(read(f), parser.source)
 
-      interp.declarations(parser.parseFromString(read(f), parser.source))(scope)
+      interp.declarations(ast)(scope)
+      moduleMap((modules, module)) = (ast, scope)
     }
 
-    println(global)
+    val startModule = start split "\\." toList
+
+    moduleMap get ((startModule.init, startModule.last)) match {
+      case None               => printError(s"start module '$start' not found")
+      case Some((ast, scope)) => interp.execute(ast)(scope)
+    }
   }
 }
 
