@@ -10,7 +10,7 @@ package object yode {
   val uvCallbackPtr   = CFunctionPtr.fromFunction1(uvCallback)
   val loop            = uv.defaultLoop()
   implicit val global = yola.globalScope
-  val interp          = new yola.Interpreter(null)
+  val interp          = new yola.Interpreter(global)
 
   case class HandleWrapper(handle: Ptr[uv.Handle])
 
