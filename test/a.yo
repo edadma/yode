@@ -1,0 +1,3 @@
+println('a module')
+
+def fa(x) = x + 1

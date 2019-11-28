@@ -48,7 +48,7 @@ object Main extends App {
     opt[String]('m', "module")
       .text("application entry point is <module>")
       .valueName("<module>")
-      .action((m, c) => c.copy(eval = Some(m)))
+      .action((m, c) => c.copy(module = Some(m)))
     opt[String]('p', "print")
       .text("execute program <script> and print result")
       .valueName("<script>")
@@ -84,9 +84,11 @@ object Main extends App {
         case Options(None, None, None, Some(script), None) => run(script)
         case Options(None, None, None, None, Some(script)) =>
           println(s"${Console.YELLOW}${run(script)}${Console.RESET}")
-        case Options(None, Some(module), None, None, None)       => load(null, module)
+        case Options(None, Some(module), None, None, None)       => load(Paths.get("."), module)
         case Options(Some(path), Some(module), None, None, None) => load(path, module)
-        case _                                                   => parser.showUsageAsError
+        case _ =>
+          println(options)
+          parser.showUsageAsError
       }
     case None => System.exit(1)
   }
@@ -102,7 +104,6 @@ object Main extends App {
   }
 
   def load(dir: Path, mod: String) = {
-
     val dirabs = dir.toAbsolutePath.normalize
     val files = Files
       .walk(dirabs)
@@ -117,7 +118,8 @@ object Main extends App {
       else if (!Files.isReadable(f))
         printError(s"not readable: ${f.toAbsolutePath.normalize}")
 
-      val rel     = dirabs.relativize(f)
+      val rel = dirabs.relativize(f)
+      println(rel)
       val modules = rel.getParent.iterator.asScala.toList map (_.toString)
       val module  = rel.getFileName.toString.dropRight(EXTENSION.length)
       val scope   = new Scope(global)
@@ -146,6 +148,7 @@ object Main extends App {
       interp.declarations(parser.parseFromString(read(f), parser.source))(scope)
     }
 
+    println(global)
   }
 }
 
