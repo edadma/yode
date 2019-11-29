@@ -1,6 +1,6 @@
 package xyz.hyperreal.yode
 
-import xyz.hyperreal.yola.Scope
+import xyz.hyperreal.yola.{AST, Scope}
 
 import scala.collection.mutable
 import scala.scalanative.native._
@@ -37,7 +37,7 @@ object Main extends App {
           else if (!Files.isReadable(Paths.get(p)))
             failure(s"directory '$p' unreadable")
           else
-            success
+          success
       )
       .action((p, c) => c.copy(dir = Some(Paths.get(p))))
     opt[String]('e', "eval")
@@ -64,7 +64,7 @@ object Main extends App {
           else if (!Files.isReadable(Paths.get(f)))
             failure(s"file '$f' unreadable")
           else
-            success
+          success
       )
       .action((f, c) => c.copy(file = Some(Paths.get(f))))
       .text("load and execute program from <file>")
@@ -111,7 +111,7 @@ object Main extends App {
       .asScala
       .toList
       .filter(_.toString.endsWith(EXTENSION))
-    val moduleMap = new mutable.HashMap[(List[String], String), (yola.AST, Scope)]
+    val moduleMap = new mutable.HashMap[(List[String], String), (yola.AST, ModuleScope)]
 
     for (f <- files) {
       if (!Files.isRegularFile(f))
@@ -126,7 +126,6 @@ object Main extends App {
           case p    => p.iterator.asScala.toList map (_.toString)
         }
       val module = rel.getFileName.toString.dropRight(EXTENSION.length)
-      val scope  = new Scope(global)
 
       def container(ms: List[String], outer: collection.mutable.Map[String, Any]): collection.mutable.Map[String, Any] =
         ms match {
@@ -145,10 +144,11 @@ object Main extends App {
             container(t, inner)
         }
 
-      container(modules, global.vars)(module) = scope.vars
-
       val parser = new yola.YParser
       val ast    = parser.parseFromString(read(f), parser.source)
+      val scope  = new ModuleScope(global, ast)
+
+      container(modules, global.vars)(module) = scope.vars
 
       interp.declarations(ast)(scope)
       moduleMap((modules, module)) = (ast, scope)
@@ -157,9 +157,24 @@ object Main extends App {
     val startModule = start split "\\." toList
 
     moduleMap get ((startModule.init, startModule.last)) match {
-      case None               => printError(s"start module '$start' not found")
-      case Some((ast, scope)) => interp.execute(ast)(scope)
+      case None => printError(s"start module '$start' not found")
+      case Some((ast, scope)) =>
+        scope.executed = true
+        interp.execute(ast)(scope)
     }
+  }
+}
+
+class ModuleScope(outer: Scope, module: AST) extends Scope(outer) {
+  var executed = false
+
+  override def get(name: String): Option[Any] = {
+    if (!executed) {
+      interp.execute(module)(this)
+      executed = true
+    }
+
+    super.get(name)
   }
 }
 
