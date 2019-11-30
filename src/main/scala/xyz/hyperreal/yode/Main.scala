@@ -78,9 +78,8 @@ object Main extends App {
   parser.parse(args, Options()) match {
     case Some(options) =>
       options match {
-        case Options(None, None, None, None, None) => REPL()
-        case Options(None, None, Some(path), None, None) =>
-          run(read(path))
+        case Options(None, None, None, None, None)         => REPL()
+        case Options(None, None, Some(path), None, None)   => run(read(path))
         case Options(None, None, None, Some(script), None) => run(script)
         case Options(None, None, None, None, Some(script)) =>
           println(s"${Console.YELLOW}${run(script)}${Console.RESET}")
@@ -100,7 +99,7 @@ object Main extends App {
   def run(script: String) = {
     val parser = new yola.YParser
 
-    interp(parser.parseFromString(script, parser.source))
+    interp(parser.parseFromString(script, parser.source))(new Scope(global))
   }
 
   def load(dir: Path, start: String) = {

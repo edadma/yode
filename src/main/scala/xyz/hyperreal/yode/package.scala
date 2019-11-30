@@ -4,13 +4,13 @@ import scala.collection.mutable
 import scala.scalanative.native._
 
 package object yode {
-  val VERSION         = "0.1.0"
-  val EXTENSION       = ".yo"
-  var handles         = new mutable.HashMap[Long, yola.FunctionExpressionAST]
-  val uvCallbackPtr   = CFunctionPtr.fromFunction1(uvCallback)
-  val loop            = uv.defaultLoop()
-  implicit val global = yola.globalScope
-  val interp          = new yola.Interpreter(global)
+  val VERSION       = "0.1.0"
+  val EXTENSION     = ".yo"
+  var handles       = new mutable.HashMap[Long, yola.FunctionExpressionAST]
+  val uvCallbackPtr = CFunctionPtr.fromFunction1(uvCallback)
+  val loop          = uv.defaultLoop()
+  val global        = yola.globalScope
+  val interp        = new yola.Interpreter(global)
 
   case class HandleWrapper(handle: Ptr[uv.Handle])
 

@@ -220,4 +220,8 @@ object uvConst {
   val UDP_HANDLE      = 15
   val SIGNAL_HANDLE   = 16
   val FILE_HANDLE     = 17
+
+  val STDIN_FILENO  = 0
+  val STDOUT_FILENO = 1
+  val STDERR_FILENO = 2
 }
