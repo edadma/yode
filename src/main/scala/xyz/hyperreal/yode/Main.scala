@@ -37,7 +37,7 @@ object Main extends App {
           else if (!Files.isReadable(Paths.get(p)))
             failure(s"directory '$p' unreadable")
           else
-          success
+            success
       )
       .action((p, c) => c.copy(dir = Some(Paths.get(p))))
     opt[String]('e', "eval")
@@ -64,7 +64,7 @@ object Main extends App {
           else if (!Files.isReadable(Paths.get(f)))
             failure(s"file '$f' unreadable")
           else
-          success
+            success
       )
       .action((f, c) => c.copy(file = Some(Paths.get(f))))
       .text("load and execute program from <file>")
@@ -93,7 +93,7 @@ object Main extends App {
     case None => System.exit(1)
   }
 
-  uv.run(loop, uvConstants.RUN_DEFAULT)
+  uv.run(loop, uvConst.RUN_DEFAULT)
 
   def read(p: Path) = new String(Files.readAllBytes(p), StandardCharsets.UTF_8)
 
@@ -149,7 +149,6 @@ object Main extends App {
       val scope  = new ModuleScope(global, ast)
 
       container(modules, global.vars)(module) = scope.vars
-
       interp.declarations(ast)(scope)
       moduleMap((modules, module)) = (ast, scope)
     }

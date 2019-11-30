@@ -12,7 +12,7 @@ object Global {
     Map(
       "println" -> prt,
       "setInterval" -> ((args: List[Any]) => {
-        val timerHandle = stdlib.malloc(uv.handleSize(uvConstants.TIMER_HANDLE)).cast[Ptr[uv.TimerHandle]]
+        val timerHandle = stdlib.malloc(uv.handleSize(uvConst.TIMER_HANDLE)).cast[Ptr[uv.TimerHandle]]
 
         uv.timerInit(loop, timerHandle)
         handles(timerHandle.cast[Long]) = args.head.asInstanceOf[yola.FunctionExpressionAST]
@@ -32,6 +32,6 @@ object Global {
                 uv.timerStop(handle)
                 stdlib.free(handle.cast[Ptr[Byte]])
             }
-      )
+        )
     )
 }

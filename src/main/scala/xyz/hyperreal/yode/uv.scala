@@ -3,6 +3,7 @@ package xyz.hyperreal.yode
 import scala.scalanative.native.Nat._
 import scala.scalanative.native._
 import scala.scalanative.posix.netinet.in.sockaddr_in
+import java.io.File
 
 @link("uv")
 @extern
@@ -133,6 +134,11 @@ object uv {
   miscellaneous utilities
    */
 
+  type FileHandle = CInt
+
+  @name("uv_guess_handle")
+  def guessHandle(file: FileHandle): CInt = extern
+
   @name("uv_ip4_addr")
   def ip4Addr(ip: CString, port: CInt, addr: Ptr[sockaddr_in]): CInt = extern
 
@@ -169,10 +175,14 @@ object uv {
   def strError(errorCode: CInt): CString = extern
 }
 
-object uvConstants {
+object uvConst {
   val RUN_DEFAULT = 0
   val RUN_ONCE    = 1
   val RUN_NOWAIT  = 2
+
+  val TTY_MODE_NORMAL = 0
+  val TTY_MODE_RAW    = 1
+  val TTY_MODE_IO     = 2
 
   val ASYNC_HANDLE    = 1
   val CHECK_HANDLE    = 2

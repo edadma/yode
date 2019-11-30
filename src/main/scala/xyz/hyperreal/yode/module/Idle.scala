@@ -10,7 +10,7 @@ object Idle {
   val exports =
     Map(
       "setIdle" -> ((args: List[Any]) => {
-        val idleHandle = stdlib.malloc(uv.handleSize(uvConstants.TIMER_HANDLE)).cast[Ptr[uv.IdleHandle]]
+        val idleHandle = stdlib.malloc(uv.handleSize(uvConst.TIMER_HANDLE)).cast[Ptr[uv.IdleHandle]]
 
         uv.idleInit(loop, idleHandle)
         handles(idleHandle.cast[Long]) = args.head.asInstanceOf[yola.FunctionExpressionAST]
@@ -18,12 +18,13 @@ object Idle {
 
         HandleWrapper(idleHandle)
       }),
-      "clearIdle" -> ((args: List[Any]) =>
-        args.head match {
-          case HandleWrapper(handle) =>
-            uv.idleStop(handle)
-            stdlib.free(handle.cast[Ptr[Byte]])
-        })
+      "clearIdle" -> (
+          (args: List[Any]) =>
+            args.head match {
+              case HandleWrapper(handle) =>
+                uv.idleStop(handle)
+                stdlib.free(handle.cast[Ptr[Byte]])
+            }
+        )
     )
-
 }
