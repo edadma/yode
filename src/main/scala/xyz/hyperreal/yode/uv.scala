@@ -22,10 +22,20 @@ object uv {
   @name("uv_loop_size")
   def loopSize(): CSize = extern
 
-  type Buffer = CStruct2[
-    CString, // char* base;
-    CSize    // size_t len;
-  ]
+  /*
+  uv_tty_t
+   */
+
+  type TTYHandle = Ptr[Byte]
+
+  @name("uv_tty_init")
+  def ttyInit(loop: Ptr[Loop], handle: Ptr[TTYHandle], file: uv.FileHandle, readable: CInt): CInt = extern
+
+  @name("uv_tty_set_mode")
+  def ttySetMode(handle: Ptr[TTYHandle], mode: CInt): CInt = extern
+
+  @name("uv_tty_reset_mode")
+  def ttyResetMode(): CInt = extern
 
   /*
   uv_tcp_t
@@ -42,6 +52,8 @@ object uv {
   /*
   uv_stream_t
    */
+
+  type StreamHandle = Ptr[Byte]
 
   type Write = CStruct12[
     Ptr[Unit],                            // void* data;
@@ -61,7 +73,7 @@ object uv {
   @name("uv_write")
   def write(
       req: Ptr[Write],
-      clientHandle: Ptr[TcpHandle],
+      clientHandle: Ptr[StreamHandle],
       buffers: Ptr[Buffer],
       numberOfBuffers: UInt,
       onWritten: CFunctionPtr2[Ptr[Write], CInt, Unit]
@@ -69,20 +81,23 @@ object uv {
 
   @name("uv_listen")
   def listen(
-      handle: Ptr[TcpHandle],
+      handle: Ptr[StreamHandle],
       connectionBacklog: CInt,
-      onTcpConnection: CFunctionPtr2[Ptr[TcpHandle], CInt, Unit]
+      onTcpConnection: CFunctionPtr2[Ptr[StreamHandle], CInt, Unit]
   ): CInt = extern
 
   @name("uv_accept")
-  def accept(handle: Ptr[TcpHandle], clientHandle: Ptr[TcpHandle]): CInt = extern
+  def accept(handle: Ptr[StreamHandle], clientHandle: Ptr[StreamHandle]): CInt = extern
 
   @name("uv_read_start")
   def readStart(
-      clientHandle: Ptr[TcpHandle],
-      allocateBuffer: CFunctionPtr3[Ptr[TcpHandle], CSize, Ptr[Buffer], Unit],
-      onRead: CFunctionPtr3[Ptr[TcpHandle], CSSize, Ptr[Buffer], Unit]
+      stream: Ptr[StreamHandle],
+      allocateBuffer: CFunctionPtr3[Ptr[StreamHandle], CSize, Ptr[Buffer], Unit],
+      onRead: CFunctionPtr3[Ptr[StreamHandle], CSSize, Ptr[Buffer], Unit]
   ): CInt = extern
+
+  @name("uv_read_stop")
+  def readStop(stream: Ptr[StreamHandle]): CInt = extern
 
   /*
   uv_handle_t
@@ -94,7 +109,7 @@ object uv {
   def handleSize(h_type: Int): CSize = extern
 
   @name("uv_close")
-  def close(clientHandle: Ptr[TcpHandle], callback: CFunctionPtr1[Ptr[TcpHandle], Unit]): CInt = extern
+  def close(clientHandle: Ptr[Handle], callback: CFunctionPtr1[Ptr[Handle], Unit]): CInt = extern
 
   /*
   uv_timer_t
@@ -114,7 +129,7 @@ object uv {
   def timerStop(handle: Ptr[TimerHandle]): CInt = extern
 
   /*
-  idle handle
+  uv_idle_t
    */
 
   type IdleHandle = Long
@@ -133,6 +148,11 @@ object uv {
   /*
   miscellaneous utilities
    */
+
+  type Buffer = CStruct2[
+    CString, // char* base;
+    CSize    // size_t len;
+  ]
 
   type FileHandle = CInt
 

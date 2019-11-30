@@ -78,7 +78,7 @@ object Main extends App {
   parser.parse(args, Options()) match {
     case Some(options) =>
       options match {
-        case Options(None, None, None, None, None) => println("no REPL yet")
+        case Options(None, None, None, None, None) => REPL()
         case Options(None, None, Some(path), None, None) =>
           run(read(path))
         case Options(None, None, None, Some(script), None) => run(script)
