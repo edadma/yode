@@ -36,7 +36,7 @@ libraryDependencies += "com.lihaoyi" %%% "utest" % "0.7.1" % "test"
 testFrameworks += new TestFramework("utest.runner.Framework")
 
 libraryDependencies ++= Seq(
-  "com.github.scopt" %%% "scopt"     % "3.7.0",
+  "com.github.scopt" %%% "scopt"     % "3.7.1",
   "com.lihaoyi"      %%% "fastparse" % "1.0.0"
 )
 

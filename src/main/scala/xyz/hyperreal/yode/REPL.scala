@@ -15,7 +15,7 @@ object REPL {
          |Yode v$VERSION REPL
          |
          |Type .help to see a list of commands.
-         |Type Ctrl-C to exit.
+         |Type Ctrl-D to exit.
         """.stripMargin
     )
 
